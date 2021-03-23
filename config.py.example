@@ -1,0 +1,31 @@
+accounts = [
+    # One dict for each account you want to rebalance
+    dict(
+    account_name='nm1',         # Account name
+    api_key='',                 # Binance API key
+    api_secret='',              # Binance API secret
+    index=1,                    # NM index to follow
+    top_n=4,                    # Use Top N coins
+    rebalance_interval=24*60    # Interval between rebalance attempts in minutes
+        ),
+    dict(
+    account_name='nm2',         # Account name
+    api_key='',                 # Binance API key
+    api_secret='',              # Binance API secret
+    index=2,                    # NM index to follow
+    top_n=4,                    # Use Top N coins
+    rebalance_interval=24*60    # Interval between rebalance attempts in minutes
+        ),
+    dict(
+    account_name='nm4',         # Account name
+    api_key='',                 # Binance API key
+    api_secret='',              # Binance API secret
+    index=4,                    # NM index to follow
+    top_n=4,                    # Use Top N coins
+    rebalance_interval=24*60    # Interval between rebalance attempts in minutes
+        ),
+    ]
+
+nm_url = ""                     # Full NM index URL without the trailing index (i.e. http://cooldude.com/nmREPORT.asp?NM=')
+
+RETRIES = 5                     # number of rebalance attempts before giving up
