@@ -212,7 +212,10 @@ class NMData:
 
     @property
     def last_update(self):
-        return self._nm_data.date.max().tz_localize(NM_TIME_ZONE)
+        if self._nm_data is not None and 'date' in self._nm_data.columns:
+            return self._nm_data.date.max().tz_localize(NM_TIME_ZONE)
+        else:
+            return 'Never'
 
     def __repr__(self):
         return f'<NMData container class at {hex(id(self))}:\n{self._nm_data.__repr__()}' \
