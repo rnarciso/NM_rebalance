@@ -12,7 +12,6 @@ from collections.abc import Collection
 from binance.exceptions import BinanceAPIException
 from nm.util import sum_dict_values, truncate, math, safe_save
 
-
 AT_SIGN = ' às '
 COIN_MARKET_COLUMNS = ['volume_24h', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'market_cap']
 KEYFILE = '.keys'
@@ -21,6 +20,7 @@ MINIMUM_TIME_OFFSET = 2000
 NM_COLUMNS = ['symbol', 'price', 'NM1', 'NM2', 'NM3', 'NM4', 'date']
 NM_MAX = 4
 NM_TIME_ZONE = 'Brazil/East'
+NM_REPORT_DEFAULT_URL = 'http://127.0.0.1/nmREPORT.asp?NM='
 NMDATA_FILE = 'nm_index.dat'
 ORDER_AMOUNT_REDUCING_FACTOR = 5 / 100
 QUOTE_ASSET = 'USDT'
@@ -191,7 +191,7 @@ class NMData:
                 from config import nm_url
             except (ImportError,ModuleNotFoundError):
                 logging.error("Invalid config.py file, 'nm_url' not specified!")
-                quit()
+                self._nm_url = NM_REPORT_DEFAULT_URL
         self._nm_url = nm_url
         self._nm_data = None
         if datafile is None:
