@@ -239,6 +239,8 @@ class NMData:
             self._nm_data = pd.read_pickle(datafile)
         except FileNotFoundError:
             pass
+        except Exception as e:
+            logging.error(e)
         return self._nm_data
 
     def save(self):
