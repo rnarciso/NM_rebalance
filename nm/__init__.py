@@ -167,7 +167,7 @@ class Backtest:
         else:
             from_date = pd.Timestamp(from_date)
         if to_date is None:
-            to_date = pd.Timestamp('now').date()
+            to_date = pd.Timestamp('now')
         elif isinstance(to_date, int):
             to_date = next_date(from_date, to_date)
         else:
@@ -176,8 +176,8 @@ class Backtest:
             date = to_date
             to_date = from_date
             from_date = date
-        from_date = pd.Timestamp(from_date.date())
-        to_date = pd.Timestamp(to_date.date())
+        from_date = pd.Timestamp(from_date).normalize()
+        to_date = pd.Timestamp(to_date).normalize()
         accounts = [{'index': i, 'top_n': top_n} for i in range(1, NM_MAX + 1)]
         new_data = self.yield_report(from_date, to_date, accounts=accounts)[self.yield_df_columns]
         self.daily_yield = pd.concat([self.daily_yield, new_data])

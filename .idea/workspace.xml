@@ -19,7 +19,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="196">
+            <state relative-caret-position="114">
               <caret line="51" column="72" selection-start-line="51" selection-start-column="56" selection-end-line="51" selection-end-column="72" />
             </state>
           </provider>
@@ -55,9 +55,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="118">
-              <caret line="220" column="21" selection-start-line="220" selection-start-column="21" selection-end-line="220" selection-end-column="21" />
+            <state relative-caret-position="-56">
+              <caret line="168" column="27" lean-forward="true" selection-start-line="168" selection-start-column="27" selection-end-line="168" selection-end-column="27" />
               <folding>
+                <element signature="e#0#11#0" expanded="true" />
                 <element signature="e#992#1118#0" />
                 <element signature="e#1220#2008#0" />
                 <element signature="e#1352#1600#0" />
@@ -70,7 +71,6 @@
                 <element signature="e#2527#2919#0" />
                 <element signature="e#2565#2868#0" />
                 <element signature="e#2586#2690#0" />
-                <element signature="e#3040#7069#0" />
                 <element signature="e#3437#3498#0" />
                 <element signature="e#3525#3681#0" />
                 <element signature="e#3888#6664#0" />
@@ -84,11 +84,9 @@
                 <element signature="e#5587#5696#0" />
                 <element signature="e#6024#6587#0" />
                 <element signature="e#6787#7009#0" />
-                <element signature="e#7151#8442#0" />
-                <element signature="e#7232#7286#0" />
                 <element signature="e#7330#7641#0" />
                 <element signature="e#7351#7531#0" />
-                <element signature="e#7971#8046#0" />
+                <element signature="e#8463#12147#0" />
                 <element signature="e#8548#9312#0" />
                 <element signature="e#8639#8873#0" />
                 <element signature="e#8756#8873#0" />
@@ -235,6 +233,18 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/nm/util.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-558">
+              <caret line="7" lean-forward="true" selection-start-line="7" selection-end-line="7" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -269,11 +279,11 @@
         <option value="$PROJECT_DIR$/requirements.txt" />
         <option value="$PROJECT_DIR$/README" />
         <option value="$PROJECT_DIR$/setup.py" />
-        <option value="$PROJECT_DIR$/nm/util.py" />
         <option value="$PROJECT_DIR$/config.py.example" />
         <option value="$USER_HOME$/Documents/PycharmProjects/NM_rebalance/nm/__init__.py" />
         <option value="$PROJECT_DIR$/rebalance.py" />
         <option value="$PROJECT_DIR$/config.py" />
+        <option value="$PROJECT_DIR$/nm/util.py" />
         <option value="$PROJECT_DIR$/nm/__init__.py" />
       </list>
     </option>
@@ -487,7 +497,21 @@
       <option name="project" value="LOCAL" />
       <updated>1616862715428</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Back tester implementation in process">
+      <created>1616863348560</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1616863348560</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Back tester implementation in process">
+      <created>1616863687181</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1616863687181</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TodoView">
@@ -573,7 +597,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/__init__.py</url>
-          <line>176</line>
+          <line>173</line>
           <option name="timeStamp" value="25" />
         </line-breakpoint>
       </breakpoints>
@@ -716,13 +740,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/nm/util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="166">
-          <caret line="25" column="13" selection-start-line="25" selection-start-column="4" selection-end-line="25" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/indexes/base.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
@@ -800,18 +817,29 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/nm/util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-558">
+          <caret line="7" lean-forward="true" selection-start-line="7" selection-end-line="7" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="196">
+        <state relative-caret-position="114">
           <caret line="51" column="72" selection-start-line="51" selection-start-column="56" selection-end-line="51" selection-end-column="72" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="118">
-          <caret line="220" column="21" selection-start-line="220" selection-start-column="21" selection-end-line="220" selection-end-column="21" />
+        <state relative-caret-position="-56">
+          <caret line="168" column="27" lean-forward="true" selection-start-line="168" selection-start-column="27" selection-end-line="168" selection-end-column="27" />
           <folding>
+            <element signature="e#0#11#0" expanded="true" />
             <element signature="e#992#1118#0" />
             <element signature="e#1220#2008#0" />
             <element signature="e#1352#1600#0" />
@@ -824,7 +852,6 @@
             <element signature="e#2527#2919#0" />
             <element signature="e#2565#2868#0" />
             <element signature="e#2586#2690#0" />
-            <element signature="e#3040#7069#0" />
             <element signature="e#3437#3498#0" />
             <element signature="e#3525#3681#0" />
             <element signature="e#3888#6664#0" />
@@ -838,11 +865,9 @@
             <element signature="e#5587#5696#0" />
             <element signature="e#6024#6587#0" />
             <element signature="e#6787#7009#0" />
-            <element signature="e#7151#8442#0" />
-            <element signature="e#7232#7286#0" />
             <element signature="e#7330#7641#0" />
             <element signature="e#7351#7531#0" />
-            <element signature="e#7971#8046#0" />
+            <element signature="e#8463#12147#0" />
             <element signature="e#8548#9312#0" />
             <element signature="e#8639#8873#0" />
             <element signature="e#8756#8873#0" />
