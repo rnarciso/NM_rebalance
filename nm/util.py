@@ -1,7 +1,7 @@
 import os
 import math
 import logging
-import pickle
+import pickle5 as pickle
 import pandas as pd
 from functools import reduce
 
