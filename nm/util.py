@@ -5,6 +5,8 @@ import pickle
 import pandas as pd
 from functools import reduce
 
+PICKLE_PROTOCOL = 4
+
 
 def sum_dict_values(*args):
     def reducer(accumulator, element):
@@ -31,9 +33,9 @@ def safe_save(self, datafile=None) -> bool:
     try:
         make_bak_file(datafile)
         if hasattr(self, 'to_pickle'):
-            self.to_pickle(datafile)
+            self.to_pickle(datafile, protocol=PICKLE_PROTOCOL)
         else:
-            pickle.dump(self, open(datafile, 'wb'), protocol=4)
+            pickle.dump(self, open(datafile, 'wb'), protocol=PICKLE_PROTOCOL)
         return True
     except Exception as e:
         logging.error(e)
