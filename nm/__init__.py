@@ -187,7 +187,11 @@ class NMData:
 
     def __init__(self, nm_url=None, load=True, datafile=None):
         if nm_url is None:
-            from config import nm_url
+            try:
+                from config import nm_url
+            except (ImportError,ModuleNotFoundError):
+                logging.error("Invalid config.py file, 'nm_url' not specified!")
+                quit()
         self._nm_url = nm_url
         self._nm_data = None
         if datafile is None:
