@@ -28,6 +28,7 @@ SINCE = '20191231'
 SYMBOL = 'symbol'
 UPDATED = 'atualizado'
 UPDATED_ON: str = f'{UPDATED} em'
+TOP_N_MAX = 4
 YIELD_FILE = 'yield.dat'
 # Following constants are imported from Client later on
 SIDE_SELL, SIDE_BUY, TIME_IN_FORCE_GTC, ORDER_STATUS_FILLED, ORDER_TYPE_LIMIT, ORDER_TYPE_LIMIT_MAKER, \
@@ -246,6 +247,7 @@ class NMData:
         self._nm_data = self._nm_data.applymap(partial(pd.to_numeric, errors='ignore'))
 
     def get(self, index=1, date='now', include_price=True):
+        columns = ['symbol', f'NM{index}', 'price']
         df: pd.DataFrame = self._nm_data
         if df is not None and 'date' in df.columns:
             df.index = pd.DatetimeIndex(pd.to_datetime(df.date)).tz_localize(NM_TIME_ZONE
@@ -253,13 +255,16 @@ class NMData:
             df = df.loc[pd.Timestamp(date).tz_localize(NM_TIME_ZONE).tz_convert('UTC').normalize():pd.Timestamp(date)
                                                                     .tz_localize(NM_TIME_ZONE).tz_convert('UTC')]
             df = df.drop_duplicates(subset=['symbol'], keep='last')
-            if include_price:
-                df = df[['symbol', f'NM{index}', 'price']].sort_values(f'NM{index}', ascending=False
-                                                                       ).set_index('symbol')
-            else:
-                df = df[['symbol', f'NM{index}']].sort_values(f'NM{index}', ascending=False).set_index('symbol')
+        else:
+            df = pd.DataFrame(columns=columns, index=[None]*TOP_N_MAX)
+        if include_price:
+            df = df[['symbol', f'NM{index}', 'price']].sort_values(f'NM{index}', ascending=False
+                                                                   ).set_index('symbol')
+        else:
+            df = df[['symbol', f'NM{index}']].sort_values(f'NM{index}', ascending=False).set_index('symbol')
 
         return df
+
 
     def get_nm_data(self, url=None):
         if url is None:
