@@ -1,0 +1,7 @@
+BeautifulSoup4
+html5lib
+lxml
+numpy
+python-binance
+pandas
+tqdm
