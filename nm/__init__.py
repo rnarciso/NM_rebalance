@@ -109,7 +109,10 @@ class Backtest:
             nm_for_date = pd.DataFrame()
             coin_data = pd.DataFrame()
             for nm_index in portfolios:
-                nm_coins = self.advisor.get(nm_index, from_date)[:top_n.get(nm_index)]
+                try:
+                    nm_coins = self.advisor.get(nm_index, from_date)[:top_n.get(nm_index)]
+                except KeyError:
+                    continue
                 prices = nm_coins.to_dict().get('price')
                 nm_coins = nm_coins.index.values
                 for coin in nm_coins:

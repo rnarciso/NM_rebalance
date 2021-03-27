@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="Back tester implementation in process">
       <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -25,7 +24,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.gitignore">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="54">
@@ -52,11 +51,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="310">
-              <caret line="264" lean-forward="true" selection-start-line="264" selection-end-line="264" />
+            <state relative-caret-position="163">
+              <caret line="217" column="38" lean-forward="true" selection-start-line="217" selection-start-column="38" selection-end-line="217" selection-end-column="38" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
                 <element signature="e#992#1118#0" />
@@ -88,7 +87,6 @@
                 <element signature="e#8639#8873#0" />
                 <element signature="e#8756#8873#0" />
                 <element signature="e#8884#9042#0" />
-                <element signature="e#9363#9420#0" />
                 <element signature="e#9644#9929#0" />
                 <element signature="e#9677#9783#0" />
                 <element signature="e#9959#10072#0" />
@@ -280,8 +278,8 @@
         <option value="$PROJECT_DIR$/rebalance.py" />
         <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/nm/util.py" />
-        <option value="$PROJECT_DIR$/nm/__init__.py" />
         <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/nm/__init__.py" />
       </list>
     </option>
   </component>
@@ -293,7 +291,7 @@
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="12" />
-    <option name="y" value="74" />
+    <option name="y" value="28" />
     <option name="width" value="1351" />
     <option name="height" value="805" />
   </component>
@@ -543,7 +541,21 @@
       <option name="project" value="LOCAL" />
       <updated>1616865878524</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="Back tester implementation in process">
+      <created>1616867142891</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1616867142891</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Back tester implementation in process">
+      <created>1616867310256</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1616867310256</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TodoView">
@@ -556,10 +568,11 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="12" y="74" width="1351" height="805" extended-state="0" />
+    <frame x="12" y="28" width="1351" height="805" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="1" visible="true" weight="0.1657754" />
+      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.1657754" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Duplicates" weight="0.32956153" />
       <window_info anchor="bottom" id="Inspection Results" weight="0.32956153" />
@@ -567,7 +580,7 @@
       <window_info anchor="bottom" id="Terminal" order="1" weight="0.32956153" />
       <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5011459" side_tool="true" weight="0.46817538" />
       <window_info anchor="bottom" id="Version Control" order="3" weight="0.32956153" />
-      <window_info anchor="bottom" id="Python Console" order="4" sideWeight="0.4988541" visible="true" weight="0.46817538" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="4" sideWeight="0.4988541" visible="true" weight="0.46817538" />
       <window_info anchor="bottom" id="Docker" order="5" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="6" />
       <window_info anchor="bottom" id="Find" order="7" weight="0.32956153" />
@@ -851,10 +864,31 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="250">
+          <caret line="53" column="22" selection-start-line="53" selection-start-column="22" selection-end-line="53" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/requirements.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="6" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="54">
+          <caret line="3" column="1" selection-start-line="3" selection-start-column="1" selection-end-line="3" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="310">
-          <caret line="264" lean-forward="true" selection-start-line="264" selection-end-line="264" />
+        <state relative-caret-position="163">
+          <caret line="217" column="38" lean-forward="true" selection-start-line="217" selection-start-column="38" selection-end-line="217" selection-end-column="38" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
             <element signature="e#992#1118#0" />
@@ -886,7 +920,6 @@
             <element signature="e#8639#8873#0" />
             <element signature="e#8756#8873#0" />
             <element signature="e#8884#9042#0" />
-            <element signature="e#9363#9420#0" />
             <element signature="e#9644#9929#0" />
             <element signature="e#9677#9783#0" />
             <element signature="e#9959#10072#0" />
@@ -1023,27 +1056,6 @@
             <element signature="e#39537#39677#0" />
             <element signature="e#41014#41135#0" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="250">
-          <caret line="53" column="22" selection-start-line="53" selection-start-column="22" selection-end-line="53" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/requirements.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret selection-end-line="6" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="3" column="1" selection-start-line="3" selection-start-column="1" selection-end-line="3" selection-end-column="1" />
         </state>
       </provider>
     </entry>
