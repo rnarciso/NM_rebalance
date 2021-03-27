@@ -5,7 +5,7 @@ import getopt
 import logging
 import pandas as pd
 from nm import NMData, Portfolio
-from config import nm_url
+from config import nm_url, nm_data_file
 from config import RETRIES as DEFAULT_RETRIES
 from config import accounts as account_config
 
@@ -23,19 +23,21 @@ def rebalance(argv):
         elif opt in ('-d', '--dry_run'):
             dry_run = True
             force_first_rebalance = True
-
-    nm_data = NMData(nm_url)
+    nm_data = NMData(nm_url, datafile=nm_data_file)
     retries = DEFAULT_RETRIES
-    while retries > 0:
-        try:
-            nm_data.get_nm_data()
-            break
-        except Exception as e:
-            logging.error(e)
-            retries -= 1
-    else:
-        logging.error('Unable to read NM index table. Aborting...')
-        quit(-1)
+    if (pd.Timestamp.now('utc') - nm_data.last_update.tz_convert('utc')).seconds // 60 > max(
+            [a.get('rebalance_interval', 24 * 60) for a in account_config]):
+        while retries > 0:
+            try:
+                logging.info('Retrieving NM index data table...')
+                nm_data.get_nm_data()
+                break
+            except Exception as e:
+                logging.error(e)
+                retries -= 1
+        else:
+            logging.error('Unable to read NM index table. Aborting...')
+            quit(-1)
     logging.info('Connecting to configured Binance account(s)...')
     for account in account_config:
         account['portfolio'] = Portfolio(config=account)
@@ -52,6 +54,8 @@ def rebalance(argv):
                     first_run = False
                     rebalancing_completed = False
                     account['force_first_rebalance'] = False
+                    if account.get('convert_small_balances_before_rebalance', False):
+                        account['portfolio'].convert_small_balances()
                     logging.info('Getting new NM data...')
                     nm_retries = DEFAULT_RETRIES
                     while nm_retries > 0:
@@ -84,9 +88,9 @@ def rebalance(argv):
                                 rebalancing_completed = True
                                 break
                 elif first_run:
-                    logging.info('Waiting next rebalance in {0} minutes.'.format(
-                                 ((account['last_update'] + pd.Timedelta(account['rebalance_interval'], 'minutes'))
-                                  - pd.Timestamp.now('utc')).seconds//60))
+                    logging.info('Waiting next rebalance for account "{0}" in {1} minutes.'.format(
+                            account['account_name'], ((account['last_update'] + pd.Timedelta(account[
+                            'rebalance_interval'], 'minutes')) - pd.Timestamp.now('utc')).seconds//60))
             except Exception as e:
                 logging.error(e)
         else:

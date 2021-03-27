@@ -2,6 +2,7 @@ import json
 import logging
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from functools import partial
 # noinspection PyPackageRequirements
 from binance.client import Client
@@ -9,32 +10,192 @@ from itertools import permutations
 from collections.abc import Collection
 # noinspection PyPackageRequirements
 from binance.exceptions import BinanceAPIException
-from nm.util import sum_dict_values, truncate, math
+from nm.util import sum_dict_values, truncate, math, safe_save
 
 
 AT_SIGN = ' às '
 COIN_MARKET_COLUMNS = ['volume_24h', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'market_cap']
 KEYFILE = '.keys'
 MAKER_PREMIUM = 0.1 / 100
-MINIMUM_TIME_OFFSET = 1000
+MINIMUM_TIME_OFFSET = 2000
 NM_COLUMNS = ['symbol', 'price', 'NM1', 'NM2', 'NM3', 'NM4', 'date']
+NM_MAX = 4
 NM_TIME_ZONE = 'Brazil/East'
+NMDATA_FILE = 'nm_index.dat'
 ORDER_AMOUNT_REDUCING_FACTOR = 5 / 100
+SINCE = '20191231'
 SYMBOL = 'symbol'
 UPDATED = 'atualizado'
 UPDATED_ON: str = f'{UPDATED} em'
+YIELD_FILE = 'yield.dat'
 # Following constants are imported from Client later on
 SIDE_SELL, SIDE_BUY, TIME_IN_FORCE_GTC, ORDER_STATUS_FILLED, ORDER_TYPE_LIMIT, ORDER_TYPE_LIMIT_MAKER, \
     ORDER_TYPE_MARKET = [None]*7
 
 
+class Backtest:
+    def __init__(self, advisor=None, datafile=None, load=True):
+        if advisor is None:
+            advisor = NMData()
+        self.advisor = advisor
+        if load and datafile is None:
+            try:
+                # noinspection PyPep8Naming,PyShadowingNames
+                from config import yield_file as YIELD_FILE
+            except ImportError:
+                global YIELD_FILE
+            datafile = YIELD_FILE
+        self.daily_yield = self.load(datafile)
+        self.filename = datafile
+        self.yield_df_columns = [f'NM{i}' for i in range(1, NM_MAX + 1)]
+        self.binance_api = None
+        for column in self.yield_df_columns.copy():
+            for suffix in ['', ' time']:
+                for feature in ['bottom', 'top']:
+                    self.yield_df_columns.append(f'{column} {feature}{suffix}')
+
+    # noinspection PyUnboundLocalVariable
+    @staticmethod
+    def load(datafile=None):
+        if datafile is None:
+            try:
+                # noinspection PyPep8Naming,PyShadowingNames
+                from config import yield_file as YIELD_FILE
+            except ImportError:
+                datafile = YIELD_FILE
+        try:
+            return pd.read_pickle(datafile)
+        except (FileNotFoundError, ValueError):
+            return pd.DataFrame()
+
+    def save(self):
+        if self.filename is None:
+            try:
+                # noinspection PyPep8Naming,PyShadowingNames
+                from config import yield_file as YIELD_FILE
+            except ImportError:
+                global YIELD_FILE
+            # noinspection PyUnboundLocalVariable
+            self.filename = YIELD_FILE
+        safe_save(self.daily_yield, self.filename)
+
+    def yield_report(self, from_date=None, to_date=None, accounts=None, candle=Client.KLINE_INTERVAL_1MINUTE):
+        if from_date is None:
+            from_date = (pd.Timestamp('now')).date().strftime('%Y-%m-%d')
+        if to_date is None:
+            to_date = (pd.Timestamp(from_date) + pd.Timedelta(1, 'day')).date().strftime('%Y-%m-%d')
+        if self.binance_api is None:
+            self.binance_api = Portfolio(connect=True)
+        binance_api = self.binance_api
+        if accounts is None:
+            portfolios = [1, 2, 4]
+            top_n = {1: 4, 2: 4, 4: 4}
+        else:
+            portfolios = [v for d in accounts for k, v in d.items() if k == 'index']
+            top_n = {portfolios[i]: d.get('top_n') for i, d in enumerate(accounts)}
+        date_range = pd.date_range(from_date, to_date)
+        nm_yield = pd.DataFrame()
+        for i, from_date in enumerate(tqdm(date_range, desc='Retrieving NM yield for specified dates')):
+            if from_date == date_range[-1]:
+                continue
+            nm_for_date = pd.DataFrame()
+            coin_data = pd.DataFrame()
+            for nm_index in portfolios:
+                nm_coins = self.advisor.get(nm_index, from_date)[:top_n.get(nm_index)]
+                prices = nm_coins.to_dict().get('price')
+                nm_coins = nm_coins.index.values
+                for coin in nm_coins:
+                    if coin not in nm_for_date.columns:
+                        symbol = f'{coin}USDT'
+                        coin_data = pd.DataFrame()
+                        retries = 3
+                        while len(coin_data) < 1440 and retries > 0:
+                            try:
+                                coin_data = pd.DataFrame(binance_api.get_historical_klines(symbol, candle,
+                                                         from_date.strftime('%Y-%m-%d'), date_range[i + 1].strftime
+                                                         ('%Y-%m-%d'))).apply(pd.to_numeric)
+                            except Exception as e:
+                                logging.error(e)
+                                pass
+                            retries -= 1
+                        coin_data.columns = ['Open time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close time',
+                                             'Quote asset volume', 'Number of trades', 'Taker buy base asset volume',
+                                             'Taker buy quote asset volume', 'Ignore']
+                        nm_for_date[coin] = (coin_data['Close'] / prices[coin] - 1)*100
+
+                nm_for_date[f'NM{nm_index}'] = nm_for_date.apply(lambda row: np.average([v for k, v in row.items()
+                                                                 if k in nm_coins]), axis=1)
+            try:
+                nm_for_date['time'] = (coin_data['Open time'] * 10**6).apply(pd.Timestamp).values
+            except KeyError:
+                continue
+            features_for_date = pd.DataFrame(nm_for_date[nm_for_date['time'] < date_range[i+1]].iloc[-1]
+                                             ).T.reset_index(drop=True)
+            for nm_index in portfolios:
+                features_for_date.loc[0, f'NM{nm_index} top'] = nm_for_date[f'NM{nm_index}'].max()
+                features_for_date.loc[0, f'NM{nm_index} bottom'] = nm_for_date[f'NM{nm_index}'].min()
+                features_for_date.loc[0, f'NM{nm_index} top time'] = nm_for_date[
+                                      nm_for_date[f'NM{nm_index}'] == nm_for_date[f'NM{nm_index}'].max()
+                                      ]['time'].values[0]
+                features_for_date.loc[0, f'NM{nm_index} bottom time'] = nm_for_date[
+                                      nm_for_date[f'NM{nm_index}'] == nm_for_date[f'NM{nm_index}'].min()
+                                      ]['time'].values[0]
+            nm_yield = nm_yield.append(features_for_date, ignore_index=True)
+        these_first = [column for column in self.yield_df_columns if column in nm_yield.columns]
+        try:
+            return nm_yield[these_first+list(nm_yield.columns.difference(these_first))].set_index('time')
+        except Exception as e:
+            logging.error(e)
+
+    def update_yield_data(self, to_date=None, from_date=None, top_n=4):
+        if from_date is None:
+            try:
+                from_date = self.daily_yield.index.max()
+                if pd.Timestamp(from_date) is pd.NaT or pd.Timestamp(from_date) < pd.Timestamp(SINCE):
+                    raise ValueError
+            except ValueError:
+                from_date = SINCE
+            from_date = pd.Timestamp(from_date) + pd.Timedelta(1, 'day')
+        else:
+            from_date = pd.Timestamp(from_date)
+        if to_date is None:
+            to_date = pd.Timestamp('now').date()
+        elif isinstance(to_date, int):
+            to_date = from_date + pd.Timedelta(to_date, 'days')
+        else:
+            to_date = pd.Timestamp(to_date)
+        if to_date < from_date:
+            date = to_date
+            to_date = from_date
+            from_date = date
+        elif to_date == from_date:
+            to_date += to_date + pd.Timedelta(1, 'days')
+        accounts = [{'index': i, 'top_n': top_n} for i in range(1, NM_MAX + 1)]
+        new_data = self.yield_report(from_date, to_date, accounts=accounts)[self.yield_df_columns]
+        self.daily_yield = pd.concat([self.daily_yield, new_data])
+        self.save()
+        return self.daily_yield
+
+
 class NMData:
     _nm_url: str
 
-    def __init__(self, nm_url):
+    def __init__(self, nm_url=None, load=True, datafile=None):
+        if nm_url is None:
+            from config import nm_url
         self._nm_url = nm_url
         self._nm_data = None
+        if datafile is None:
+            try:
+                from config import nm_data_file as datafile
+            except ImportError:
+                datafile = NMDATA_FILE
+        if datafile is not None and len(datafile) < 1:
+            datafile = None
+        self.filename = datafile
         self.subset = ['price']+[f'NM{i}' for i in range(1, 5)]
+        if load and datafile is not None:
+            self._nm_data = self.load(datafile)
 
     @property
     def last_update(self):
@@ -46,6 +207,22 @@ class NMData:
     def __str__(self):
         return self._nm_data.__str__()
 
+    def load(self, datafile=None):
+        if datafile is None:
+            if self.filename is None:
+                self.filename = NMDATA_FILE
+            datafile = self.filename
+        try:
+            self._nm_data = pd.read_pickle(datafile)
+        except FileNotFoundError:
+            pass
+        return self._nm_data
+
+    def save(self):
+        if self.filename is None:
+            self.filename = NMDATA_FILE
+        safe_save(self._nm_data, self.filename)
+
     def sort(self, by=None):
         if by is None:
             by = ['date', 'symbol']
@@ -55,13 +232,17 @@ class NMData:
     def to_numeric(self):
         self._nm_data = self._nm_data.applymap(partial(pd.to_numeric, errors='ignore'))
 
-    def get(self, index=1, date='now'):
+    def get(self, index=1, date='now', include_price=True):
         df: pd.DataFrame = self._nm_data
-        df.index = pd.DatetimeIndex(pd.to_datetime(df.date, unit='ms')).tz_localize(NM_TIME_ZONE
-                                                                                    ).tz_convert('UTC').to_series()
+        df.index = pd.DatetimeIndex(pd.to_datetime(df.date)).tz_localize(NM_TIME_ZONE
+                                                                         ).tz_convert('UTC').to_series()
         df = df.loc[pd.Timestamp(date).tz_localize(NM_TIME_ZONE).tz_convert('UTC').normalize():pd.Timestamp(date)
                                                                 .tz_localize(NM_TIME_ZONE).tz_convert('UTC')]
-        df = df[['symbol', f'NM{index}']].sort_values(f'NM{index}', ascending=False).set_index('symbol')
+        df = df.drop_duplicates(subset=['symbol'], keep='last')
+        if include_price:
+            df = df[['symbol', f'NM{index}', 'price']].sort_values(f'NM{index}', ascending=False).set_index('symbol')
+        else:
+            df = df[['symbol', f'NM{index}']].sort_values(f'NM{index}', ascending=False).set_index('symbol')
 
         return df
 
@@ -83,6 +264,8 @@ class NMData:
         self._nm_data = df
         self.to_numeric()
         self.drop_duplicates()
+        if self.filename is not None and len(self._nm_data) > 0:
+            self.save()
         return self._nm_data
 
     def drop_duplicates(self):
@@ -97,8 +280,18 @@ class Portfolio:
         if isinstance(config, dict):
             self._config = config
         else:
-            logging.error('Config must be a dictionary !')
-            self._config = None
+            try:
+                from config import accounts
+                if keyname is not None:
+                    for account in accounts:
+                        if keyname == account.get('account_name'):
+                            self._config = account
+                            break
+                else:
+                    self._config = accounts[0]
+            except Exception as e:
+                logging.error(e)
+                self._config = None
         self._balance = {}
         self._client = None
         self._fees = None
@@ -107,6 +300,7 @@ class Portfolio:
         self._time_offset = 0
         self.min_notational = {}
         self.lot_size = {}
+        self.transactions = pd.DataFrame()
         if connect:
             self.connect(keyname)
 
@@ -119,26 +313,29 @@ class Portfolio:
         return self._time_offset
 
     def __getattr__(self, attr):
-        if attr[0] != '_' and not hasattr(super(), attr) and hasattr(self._client, attr):
-            if attr in ['get_trade_fee', 'get_account', 'create_order', 'get_open_orders',
-                        'create_test_order', 'get_asset_balance', 'get_order', 'get_all_orders',
-                        'get_my_trades', 'get_sub_account_list']:
-                setattr(self, attr, partial(getattr(self._client, attr), recvWindow=self.time_offset))
-            else:
-                setattr(self, attr, getattr(self._client, attr))
-            try:
-                return getattr(self, attr)
-            except BinanceAPIException as e:
-                if 'recvWindow' in e:
-                    self._time_offset = 0
+        if attr[0] != '_' and not hasattr(super(), attr):
+            if self._client is None:
+                self.connect()
+            if attr[0] != '_' and not hasattr(super(), attr) and hasattr(self._client, attr):
+                if attr in ['get_trade_fee', 'get_account', 'create_order', 'get_open_orders',
+                            'create_test_order', 'get_asset_balance', 'get_order', 'get_all_orders',
+                            'get_my_trades', 'get_sub_account_list', 'transfer_dust', ]:
                     setattr(self, attr, partial(getattr(self._client, attr), recvWindow=self.time_offset))
-                    try:
-                        return getattr(self, attr)
-                    except Exception as e:
-                        logging.error(e)
                 else:
-                    logging.error(e)
-                    return
+                    setattr(self, attr, getattr(self._client, attr))
+                try:
+                    return getattr(self, attr)
+                except BinanceAPIException as e:
+                    if 'recvWindow' in e:
+                        self._time_offset = 0
+                        setattr(self, attr, partial(getattr(self._client, attr), recvWindow=self.time_offset))
+                        try:
+                            return getattr(self, attr)
+                        except Exception as e:
+                            logging.error(e)
+                    else:
+                        logging.error(e)
+                        return
 
         super().__getattribute__(attr)
 
@@ -280,6 +477,21 @@ class Portfolio:
                 cost *= 1 + fee
 
             return dict(price=avg_price, quote_amount=cost)
+
+    def convert_small_balances(self, base_asset='BNB'):
+        balance = self.balance
+        small_balances = [asset for asset in balance.index if balance.loc[asset, 'USDT Value'] <
+                          self.minimal_order(f'{asset}USDT')]
+        try:
+            bnb_index = small_balances.index(base_asset)
+            small_balances.pop(bnb_index)
+        except ValueError:
+            pass
+        for asset in small_balances:
+            try:
+                self.transfer_dust(asset=asset)
+            except BinanceAPIException as e:
+                logging.error(f'{e}. Asset: {asset}.')
 
     def fit_market_order(self, market='BTCUSDT',
                          quote_amount=None, side=SIDE_BUY, add_fee=True):
@@ -639,6 +851,66 @@ class Portfolio:
                 order_numbers += [orderId]
             for orderId in order_numbers:
                 logging.info(f'Order # {orderId}: {self.order_status(orderId)}')
+
+    def statement(self, since=None):
+        trades = []
+        last_transaction = None
+        symbols = [i.get('symbol') for i in self.get_all_tickers()]
+        for symbol in tqdm(symbols):
+            try:
+                if since is not None:
+                    since = pd.Timestamp(since).value // 10**6
+                    trades += self.get_my_trades(symbol=symbol, startTime=since)
+                else:
+                    try:
+                        last_transaction = self.transactions[self.transactions.symbol == symbol].time.max(
+                                ).value // 10**6
+                        trades += self.get_my_trades(symbol=symbol, startTime=last_transaction)
+                    except Exception as e:
+                        logging.warning(e)
+                        trades += self.get_my_trades(symbol=symbol)
+            except BinanceAPIException as e:
+                logging.error(e)
+        transactions = pd.DataFrame.from_dict(trades)
+        for timestamp in ['time', 'updateTime']:
+            if timestamp in transactions.columns:
+                transactions[timestamp] = (transactions[timestamp] * 10 ** 6).apply(pd.Timestamp)
+        transactions = transactions.applymap(partial(pd.to_numeric, errors='ignore'))
+        dusts = pd.DataFrame()
+        if since is None:
+            since = last_transaction
+        try:
+                dusts = pd.DataFrame([i.get('logs')[0] for i in self.get_dust_log(startTime=since)
+                                     ['results']['rows'] if i.get('logs') is not None])
+        except KeyError:
+            try:
+                dusts = pd.DataFrame([i.get('logs')[0] for i in self.get_dust_log()['results']
+                                     ['rows'] if i.get('logs') is not None])
+            except Exception as e:
+                logging.error(e)
+
+        dusts = dusts.applymap(partial(pd.to_numeric, errors='ignore'))
+        dusts.operateTime = pd.to_datetime(dusts.operateTime).apply(pd.Timestamp)
+        dusts['symbol'] = pd.Series([f'BNB{s}' if f'BNB{s}' in symbols else f'{s}BNB'
+                                    for i, s in enumerate(dusts.fromAsset.values)])
+        dusts = dusts.rename({'tranId': 'orderId', 'serviceChargeAmount': 'commission', 'amount': 'qty', 'operateTime':
+                             'time', 'uid': 'id'}, axis='columns')
+        dusts['isBuyer'] = dusts.apply(lambda row: False if row['fromAsset'] == row['symbol'][:len(row['fromAsset'])]
+                                       else True, axis=1)
+        dusts['isMaker'] = False
+        dusts['isBestMatch'] = True
+        dusts.loc[dusts.isBuyer, 'quoteQty'] = dusts.loc[dusts.isBuyer, 'qty']
+        dusts.loc[dusts.isBuyer, 'qty'] = dusts.loc[dusts.isBuyer, 'transferedAmount'] + dusts.loc[
+                                                    dusts.isBuyer, 'commission']
+        dusts.loc[dusts.isBuyer, 'price'] = dusts.loc[dusts.isBuyer, 'quoteQty'] / dusts.loc[dusts.isBuyer, 'qty']
+        dusts.loc[~dusts.isBuyer, 'quoteQty'] = dusts.loc[~dusts.isBuyer, 'qty']**2 / dusts.loc[
+                                                          ~dusts.isBuyer, 'transferedAmount']
+        dusts.loc[~dusts.isBuyer, 'price'] = dusts.loc[~dusts.isBuyer, 'qty'] / dusts.loc[
+                                                       ~dusts.isBuyer, 'transferedAmount']
+        dusts['commissionAsset'] = 'BNB'
+        dusts['orderListId'] = -1
+        transactions = pd.concat([transactions, dusts[transactions.columns]]).set_index('time').sort_index()
+        self.transactions = self.transactions.append(transactions)
 
 
 # import constants from Client

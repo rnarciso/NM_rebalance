@@ -29,3 +29,5 @@ accounts = [
 nm_url = ""                     # Full NM index URL without the trailing index (i.e. http://cooldude.com/nmREPORT.asp?NM=')
 
 RETRIES = 5                     # number of rebalance attempts before giving up
+
+nm_data_file = ''
