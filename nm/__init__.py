@@ -151,10 +151,11 @@ class Backtest:
             nm_yield = nm_yield.append(features_for_date, ignore_index=True)
         these_first = [column for column in self.yield_df_columns if column in nm_yield.columns]
         try:
-            nm_yield = nm_yield[these_first + list(nm_yield.columns.difference(these_first))].set_index('time')
-            nm_yield.index = nm_yield.index.normalize()
-            nm_yield.index.name = None
-            return nm_yield
+            if 'time' in nm_yield.columns:
+                nm_yield = nm_yield[these_first + list(nm_yield.columns.difference(these_first))].set_index('time')
+                nm_yield.index = nm_yield.index.normalize()
+                nm_yield.index.name = None
+                return nm_yield
         except Exception as e:
             logging.error(e)
 
