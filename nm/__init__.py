@@ -43,7 +43,7 @@ class Backtest:
             try:
                 # noinspection PyPep8Naming,PyShadowingNames
                 from config import yield_file as YIELD_FILE
-            except ImportError:
+            except (ImportError, ModuleNotFoundError):
                 global YIELD_FILE
             datafile = YIELD_FILE
         self.daily_yield = self.load(datafile)
@@ -62,7 +62,7 @@ class Backtest:
             try:
                 # noinspection PyPep8Naming,PyShadowingNames
                 from config import yield_file as YIELD_FILE
-            except ImportError:
+            except (ImportError, ModuleNotFoundError):
                 datafile = YIELD_FILE
         try:
             return pd.read_pickle(datafile)
@@ -74,7 +74,7 @@ class Backtest:
             try:
                 # noinspection PyPep8Naming,PyShadowingNames
                 from config import yield_file as YIELD_FILE
-            except ImportError:
+            except (ImportError, ModuleNotFoundError):
                 global YIELD_FILE
             # noinspection PyUnboundLocalVariable
             self.filename = YIELD_FILE
@@ -193,7 +193,7 @@ class NMData:
         if datafile is None:
             try:
                 from config import nm_data_file as datafile
-            except ImportError:
+            except (ImportError, ModuleNotFoundError):
                 datafile = NMDATA_FILE
         if datafile is not None and len(datafile) < 1:
             datafile = None
