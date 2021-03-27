@@ -129,21 +129,21 @@ class Backtest:
                 nm_for_date['time'] = (coin_data['Open time'] * 10**6).apply(pd.Timestamp).values
             except KeyError:
                 continue
-            features_for_date = pd.DataFrame(nm_for_date[nm_for_date['time'] < date_range[i+1]].iloc[-1]
-                                             ).T.reset_index(drop=True)
+            features_for_date = nm_for_date[nm_for_date['time'] < date_range[i+1]].iloc[-1]
             for nm_index in portfolios:
-                features_for_date.loc[0, f'NM{nm_index} top'] = nm_for_date[f'NM{nm_index}'].max()
-                features_for_date.loc[0, f'NM{nm_index} bottom'] = nm_for_date[f'NM{nm_index}'].min()
-                features_for_date.loc[0, f'NM{nm_index} top time'] = nm_for_date[
-                                      nm_for_date[f'NM{nm_index}'] == nm_for_date[f'NM{nm_index}'].max()
-                                      ]['time'].values[0]
-                features_for_date.loc[0, f'NM{nm_index} bottom time'] = nm_for_date[
-                                      nm_for_date[f'NM{nm_index}'] == nm_for_date[f'NM{nm_index}'].min()
-                                      ]['time'].values[0]
+                features_for_date[f'NM{nm_index} top'] = nm_for_date[f'NM{nm_index}'].max()
+                features_for_date[f'NM{nm_index} bottom'] = nm_for_date[f'NM{nm_index}'].min()
+                features_for_date[f'NM{nm_index} top time'] = nm_for_date[
+                                  nm_for_date[f'NM{nm_index}'] == nm_for_date[f'NM{nm_index}'].max()]['time'].values[0]
+                features_for_date[f'NM{nm_index} bottom time'] = nm_for_date[
+                                  nm_for_date[f'NM{nm_index}'] == nm_for_date[f'NM{nm_index}'].min()]['time'].values[0]
             nm_yield = nm_yield.append(features_for_date, ignore_index=True)
         these_first = [column for column in self.yield_df_columns if column in nm_yield.columns]
         try:
-            return nm_yield[these_first+list(nm_yield.columns.difference(these_first))].set_index('time')
+            nm_yield = nm_yield[these_first + list(nm_yield.columns.difference(these_first))].set_index('time')
+            nm_yield.index = nm_yield.index.normalize()
+            nm_yield.index.name = None
+            return nm_yield
         except Exception as e:
             logging.error(e)
 
@@ -163,13 +163,13 @@ class Backtest:
         elif isinstance(to_date, int):
             to_date = from_date + pd.Timedelta(to_date, 'days')
         else:
-            to_date = pd.Timestamp(to_date)
+            to_date = pd.Timestamp(to_date) + pd.Timedelta(1, 'days')
         if to_date < from_date:
             date = to_date
             to_date = from_date
             from_date = date
-        elif to_date == from_date:
-            to_date += to_date + pd.Timedelta(1, 'days')
+        from_date = pd.Timestamp(from_date.date())
+        to_date = pd.Timestamp(to_date.date())
         accounts = [{'index': i, 'top_n': top_n} for i in range(1, NM_MAX + 1)]
         new_data = self.yield_report(from_date, to_date, accounts=accounts)[self.yield_df_columns]
         self.daily_yield = pd.concat([self.daily_yield, new_data])
