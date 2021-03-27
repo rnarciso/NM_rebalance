@@ -2,6 +2,7 @@ import os
 import math
 import logging
 import pickle
+import pandas as pd
 from functools import reduce
 
 
@@ -44,3 +45,7 @@ def make_bak_file(datafile):
         if os.path.exists(os.path.splitext(datafile)[0] + '.bak'):
             os.remove(os.path.splitext(datafile)[0] + '.bak')
         os.rename(datafile, os.path.splitext(datafile)[0] + '.bak')
+
+
+def next_date(date, days=1):
+    return pd.Timestamp(date) + pd.Timedelta(days, 'days')

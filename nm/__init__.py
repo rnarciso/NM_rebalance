@@ -10,7 +10,7 @@ from itertools import permutations
 from collections.abc import Collection
 # noinspection PyPackageRequirements
 from binance.exceptions import BinanceAPIException
-from nm.util import sum_dict_values, truncate, math, safe_save
+from nm.util import math, next_date, safe_save, sum_dict_values, truncate
 
 AT_SIGN = ' às '
 COIN_MARKET_COLUMNS = ['volume_24h', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'market_cap']
@@ -88,9 +88,9 @@ class Backtest:
 
     def yield_report(self, from_date=None, to_date=None, accounts=None, candle=Client.KLINE_INTERVAL_1MINUTE):
         if from_date is None:
-            from_date = (pd.Timestamp('now')).date().strftime('%Y-%m-%d')
+            from_date = pd.Timestamp('now')
         if to_date is None:
-            to_date = (pd.Timestamp(from_date) + pd.Timedelta(1, 'day')).date().strftime('%Y-%m-%d')
+            to_date = next_date(from_date)
         if self.binance_api is None:
             self.binance_api = Portfolio(connect=True)
         binance_api = self.binance_api
@@ -155,9 +155,6 @@ class Backtest:
             logging.error(e)
 
     def update_yield_data(self, to_date=None, from_date=None, top_n=4):
-        # noinspection PyShadowingNames
-        def next_date(date, days=1):
-            return pd.Timestamp(date) + pd.Timedelta(days, 'days')
 
         if from_date is None:
             try:
