@@ -23,6 +23,7 @@ NM_MAX = 4
 NM_TIME_ZONE = 'Brazil/East'
 NMDATA_FILE = 'nm_index.dat'
 ORDER_AMOUNT_REDUCING_FACTOR = 5 / 100
+QUOTE_ASSET = 'USDT'
 SINCE = '20191231'
 SYMBOL = 'symbol'
 UPDATED = 'atualizado'
@@ -106,7 +107,7 @@ class Backtest:
                 nm_coins = nm_coins.index.values
                 for coin in nm_coins:
                     if coin not in nm_for_date.columns:
-                        symbol = f'{coin}USDT'
+                        symbol = f'{coin}{QUOTE_ASSET}'
                         coin_data = pd.DataFrame()
                         retries = 3
                         while len(coin_data) < 1440 and retries > 0:
@@ -148,6 +149,10 @@ class Backtest:
             logging.error(e)
 
     def update_yield_data(self, to_date=None, from_date=None, top_n=4):
+        # noinspection PyShadowingNames
+        def next_date(date, days=1):
+            return pd.Timestamp(date) + pd.Timedelta(days, 'days')
+
         if from_date is None:
             try:
                 from_date = self.daily_yield.index.max()
@@ -155,15 +160,15 @@ class Backtest:
                     raise ValueError
             except ValueError:
                 from_date = SINCE
-            from_date = pd.Timestamp(from_date) + pd.Timedelta(1, 'day')
+            from_date = next_date(from_date)
         else:
             from_date = pd.Timestamp(from_date)
         if to_date is None:
             to_date = pd.Timestamp('now').date()
         elif isinstance(to_date, int):
-            to_date = from_date + pd.Timedelta(to_date, 'days')
+            to_date = next_date(from_date, to_date)
         else:
-            to_date = pd.Timestamp(to_date) + pd.Timedelta(1, 'days')
+            to_date = next_date(to_date)
         if to_date < from_date:
             date = to_date
             to_date = from_date
@@ -357,9 +362,9 @@ class Portfolio:
         try:
             prices = {i.get('symbol'): i.get('price') for i in self.get_all_tickers()}
 
-            df['USDT Value'] = df.apply(lambda row: float(prices.get(f'{row.name}USDT', '0')) *
-                                        row['Amount'] if row.name != 'USDT' else row['Amount'], axis=1)
-            df['%'] = df['USDT Value'] / df['USDT Value'].sum() * 100
+            df[f'{QUOTE_ASSET} Value'] = df.apply(lambda row: float(prices.get(f'{row.name}{QUOTE_ASSET}', '0')) *
+                                                  row['Amount'] if row.name != QUOTE_ASSET else row['Amount'], axis=1)
+            df['%'] = df[f'{QUOTE_ASSET} Value'] / df[f'{QUOTE_ASSET} Value'].sum() * 100
         except Exception as e:
             logging.error(e)
         return df
@@ -480,21 +485,19 @@ class Portfolio:
 
     def convert_small_balances(self, base_asset='BNB'):
         balance = self.balance
-        small_balances = [asset for asset in balance.index if balance.loc[asset, 'USDT Value'] <
-                          self.minimal_order(f'{asset}USDT')]
+        small_balances = [asset for asset in balance.index if balance.loc[asset, f'{QUOTE_ASSET} Value'] <
+                          self.minimal_order(f'{asset}{QUOTE_ASSET}')]
         try:
             bnb_index = small_balances.index(base_asset)
             small_balances.pop(bnb_index)
         except ValueError:
             pass
-        for asset in small_balances:
-            try:
-                self.transfer_dust(asset=asset)
-            except BinanceAPIException as e:
-                logging.error(f'{e}. Asset: {asset}.')
+        try:
+            self.transfer_dust(asset=','.join(small_balances))
+        except BinanceAPIException as e:
+            logging.error(f'{e}. Assets: {small_balances}.')
 
-    def fit_market_order(self, market='BTCUSDT',
-                         quote_amount=None, side=SIDE_BUY, add_fee=True):
+    def fit_market_order(self, market=f'BTC{QUOTE_ASSET}', quote_amount=None, side=SIDE_BUY, add_fee=True):
         # noinspection PyShadowingNames
         def return_dict(base_amount, avg_price):
             return dict(amount=base_amount, price=avg_price)
@@ -605,7 +608,7 @@ class Portfolio:
         return order
 
     def rebalanced_portfolio_proposal(self, target,
-                                      quote_asset: str = 'USDT',
+                                      quote_asset: str = QUOTE_ASSET,
                                       threshold: float = 2.0,
                                       fee_type: str = 'taker',
                                       market_order: bool = True,
