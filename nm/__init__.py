@@ -55,6 +55,12 @@ class Backtest:
                 for feature in ['bottom', 'top']:
                     self.yield_df_columns.append(f'{column} {feature}{suffix}')
 
+    def __repr__(self):
+        return f'<Backtest container class at {hex(id(self))}:\n{self.daily_yield.__repr__()}>'
+
+    def __str__(self):
+        return self.daily_yield.__str__()
+
     # noinspection PyUnboundLocalVariable
     @staticmethod
     def load(datafile=None):
@@ -211,7 +217,8 @@ class NMData:
         return self._nm_data.date.max().tz_localize(NM_TIME_ZONE)
 
     def __repr__(self):
-        return f'<NMData container class at {hex(id(self))}:\n{self._nm_data.__repr__()}>'
+        return f'<NMData container class at {hex(id(self))}:\n{self._nm_data.__repr__()}' \
+               f'\n\nLast update on {self.last_update}>'
 
     def __str__(self):
         return self._nm_data.__str__()
