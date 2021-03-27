@@ -183,7 +183,8 @@ class Backtest:
         from_date = pd.Timestamp(from_date).normalize()
         to_date = pd.Timestamp(to_date).normalize()
         accounts = [{'index': i, 'top_n': top_n} for i in range(1, NM_MAX + 1)]
-        new_data = self.yield_report(from_date, to_date, accounts=accounts)[self.yield_df_columns]
+        new_data = self.yield_report(from_date, to_date, accounts=accounts)
+        new_data = new_data[set(self.yield_df_columns).intersection(new_data.columns)]
         self.daily_yield = pd.concat([self.daily_yield, new_data])
         self.save()
         return self.daily_yield
