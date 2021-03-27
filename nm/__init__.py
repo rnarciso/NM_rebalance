@@ -247,7 +247,7 @@ class NMData:
 
     def get(self, index=1, date='now', include_price=True):
         df: pd.DataFrame = self._nm_data
-        if 'date' in df.columns:
+        if df is not None and 'date' in df.columns:
             df.index = pd.DatetimeIndex(pd.to_datetime(df.date)).tz_localize(NM_TIME_ZONE
                                                                              ).tz_convert('UTC').to_series()
             df = df.loc[pd.Timestamp(date).tz_localize(NM_TIME_ZONE).tz_convert('UTC').normalize():pd.Timestamp(date)
