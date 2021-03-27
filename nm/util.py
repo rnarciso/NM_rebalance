@@ -1,7 +1,7 @@
 import os
 import math
 import logging
-import pickle5 as pickle
+import pickle
 import pandas as pd
 from functools import reduce
 
@@ -33,7 +33,7 @@ def safe_save(self, datafile=None) -> bool:
         if hasattr(self, 'to_pickle'):
             self.to_pickle(datafile)
         else:
-            pickle.dump(self, open(datafile, 'wb'))
+            pickle.dump(self, open(datafile, 'wb'), protocol=4)
         return True
     except Exception as e:
         logging.error(e)
