@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/rnarciso.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/rnarciso.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -20,8 +18,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="142">
-              <caret line="21" column="4" selection-start-line="21" selection-start-column="4" selection-end-line="21" selection-end-column="4" />
+            <state relative-caret-position="157">
+              <caret line="51" column="6" selection-start-line="51" selection-end-line="51" selection-end-column="6" />
             </state>
           </provider>
         </entry>
@@ -44,24 +42,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/rebalance.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="133">
               <caret line="83" column="32" selection-start-line="83" selection-start-column="32" selection-end-line="83" selection-end-column="32" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/nm/__init__.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="118">
-              <caret line="45" column="53" selection-start-line="45" selection-start-column="53" selection-end-line="45" selection-end-column="53" />
-              <folding>
-                <element signature="e#971#1097#0" />
-                <element signature="e#7840#7915#0" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -86,6 +71,8 @@
       <find>USDT</find>
       <find>convert_small_balances_before_rebalance</find>
       <find>import</find>
+      <find>ImportError</find>
+      <find>(ImportError,ModuleNotFoundError)</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -283,7 +270,21 @@
       <option name="project" value="LOCAL" />
       <updated>1616856983530</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Back tester implementation in process">
+      <created>1616861911715</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1616861911715</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Back tester implementation in process">
+      <created>1616862232932</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1616862232932</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TodoView">
@@ -297,7 +298,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="75" y="29" width="1351" height="805" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
       <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.1657754" />
@@ -305,10 +305,10 @@
       <window_info anchor="bottom" id="Duplicates" weight="0.32956153" />
       <window_info anchor="bottom" id="Inspection Results" weight="0.32956153" />
       <window_info anchor="bottom" id="Database Changes" order="0" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Terminal" order="1" weight="0.32956153" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="1" visible="true" weight="0.32956153" />
       <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5011459" side_tool="true" weight="0.46817538" />
       <window_info anchor="bottom" id="Version Control" order="3" weight="0.32956153" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="4" sideWeight="0.4988541" visible="true" weight="0.46817538" />
+      <window_info anchor="bottom" id="Python Console" order="4" sideWeight="0.4988541" weight="0.46817538" />
       <window_info anchor="bottom" id="Docker" order="5" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="6" />
       <window_info anchor="bottom" id="Find" order="7" weight="0.32956153" />
@@ -370,7 +370,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/__init__.py</url>
-          <line>177</line>
+          <line>170</line>
           <option name="timeStamp" value="25" />
         </line-breakpoint>
       </breakpoints>
@@ -592,8 +592,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="142">
-          <caret line="21" column="4" selection-start-line="21" selection-start-column="4" selection-end-line="21" selection-end-column="4" />
+        <state relative-caret-position="157">
+          <caret line="51" column="6" selection-start-line="51" selection-end-line="51" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nm/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="204">
+          <caret line="194" column="29" lean-forward="true" selection-start-line="194" selection-start-column="29" selection-end-line="194" selection-end-column="29" />
+          <folding>
+            <element signature="e#971#1097#0" />
+            <element signature="e#1352#1456#0" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -601,17 +612,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="133">
           <caret line="83" column="32" selection-start-line="83" selection-start-column="32" selection-end-line="83" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/nm/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="118">
-          <caret line="45" column="53" selection-start-line="45" selection-start-column="53" selection-end-line="45" selection-end-column="53" />
-          <folding>
-            <element signature="e#971#1097#0" />
-            <element signature="e#7840#7915#0" />
-          </folding>
         </state>
       </provider>
     </entry>
