@@ -247,15 +247,17 @@ class NMData:
 
     def get(self, index=1, date='now', include_price=True):
         df: pd.DataFrame = self._nm_data
-        df.index = pd.DatetimeIndex(pd.to_datetime(df.date)).tz_localize(NM_TIME_ZONE
-                                                                         ).tz_convert('UTC').to_series()
-        df = df.loc[pd.Timestamp(date).tz_localize(NM_TIME_ZONE).tz_convert('UTC').normalize():pd.Timestamp(date)
-                                                                .tz_localize(NM_TIME_ZONE).tz_convert('UTC')]
-        df = df.drop_duplicates(subset=['symbol'], keep='last')
-        if include_price:
-            df = df[['symbol', f'NM{index}', 'price']].sort_values(f'NM{index}', ascending=False).set_index('symbol')
-        else:
-            df = df[['symbol', f'NM{index}']].sort_values(f'NM{index}', ascending=False).set_index('symbol')
+        if 'date' in df.columns:
+            df.index = pd.DatetimeIndex(pd.to_datetime(df.date)).tz_localize(NM_TIME_ZONE
+                                                                             ).tz_convert('UTC').to_series()
+            df = df.loc[pd.Timestamp(date).tz_localize(NM_TIME_ZONE).tz_convert('UTC').normalize():pd.Timestamp(date)
+                                                                    .tz_localize(NM_TIME_ZONE).tz_convert('UTC')]
+            df = df.drop_duplicates(subset=['symbol'], keep='last')
+            if include_price:
+                df = df[['symbol', f'NM{index}', 'price']].sort_values(f'NM{index}', ascending=False
+                                                                       ).set_index('symbol')
+            else:
+                df = df[['symbol', f'NM{index}']].sort_values(f'NM{index}', ascending=False).set_index('symbol')
 
         return df
 
