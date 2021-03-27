@@ -12,11 +12,11 @@ usage:
 - Edit config.py file to include your account details, NM index this account is related to, number of coins you are using,
                as well the NM index URL (the one provided with the course, that you use to check everyday).
 - Change script permissions: chmod +x ./rebalance.py
-- Run ./rebalance.py -d. If every is correct you should see a list of orders need to rebalance your account.
+- Run ./rebalance.py -d. If everything is correct you should see a list of orders need to rebalance your account.
 - If everything looks good, run ./rebalance.py -f to force immediate rebalance.
 - The script will keep running until interrupted by Ctrl-C.
 
-This script was "designed" to run on low power hardware such as NAS, a cheap VPS, therefore it is CLI only,
+This script was "designed" to run on low power hardware such as NAS or a cheap VPS, therefore it is CLI only,
 no GUI or web interface is planned.
 
 For more info about "Nova Moeda" index, see: https://youtu.be/4WSOd9iY4iI.
