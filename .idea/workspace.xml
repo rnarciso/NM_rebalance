@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="Back tester implementation in process">
-      <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
-    </list>
+    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,14 +52,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="163">
-              <caret line="217" column="38" lean-forward="true" selection-start-line="217" selection-start-column="38" selection-end-line="217" selection-end-column="38" />
+            <state relative-caret-position="294">
+              <caret line="310" column="21" selection-start-line="310" selection-start-column="21" selection-end-line="310" selection-end-column="21" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
                 <element signature="e#992#1118#0" />
-                <element signature="e#1220#2008#0" />
-                <element signature="e#1352#1600#0" />
-                <element signature="e#1373#1477#0" />
                 <element signature="e#1850#2008#0" />
                 <element signature="e#1895#2008#0" />
                 <element signature="e#2107#2497#0" />
@@ -96,10 +91,6 @@
                 <element signature="e#11281#12041#0" />
                 <element signature="e#11482#11797#0" />
                 <element signature="e#12082#12147#0" />
-                <element signature="e#12172#40938#0" />
-                <element signature="e#12294#13196#0" />
-                <element signature="e#12383#12841#0" />
-                <element signature="e#12404#12737#0" />
                 <element signature="e#12492#12668#0" />
                 <element signature="e#12541#12668#0" />
                 <element signature="e#12612#12668#0" />
@@ -259,8 +250,8 @@
       <find>USDT</find>
       <find>import</find>
       <find>ImportError</find>
-      <find>(ImportError,ModuleNotFoundError)</find>
       <find>convert_small_balances_before_rebalance</find>
+      <find>(ImportError,ModuleNotFoundError)</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -555,7 +546,28 @@
       <option name="project" value="LOCAL" />
       <updated>1616867310256</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="Back tester implementation in process">
+      <created>1616867406404</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1616867406404</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Back tester implementation in process">
+      <created>1616867576006</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1616867576006</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Back tester implementation in process">
+      <created>1616868164547</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1616868164547</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TodoView">
@@ -639,11 +651,6 @@
           <url>file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/nm/__init__.py</url>
           <line>78</line>
           <option name="timeStamp" value="3" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/nm/__init__.py</url>
-          <line>174</line>
-          <option name="timeStamp" value="25" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -887,14 +894,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="163">
-          <caret line="217" column="38" lean-forward="true" selection-start-line="217" selection-start-column="38" selection-end-line="217" selection-end-column="38" />
+        <state relative-caret-position="294">
+          <caret line="310" column="21" selection-start-line="310" selection-start-column="21" selection-end-line="310" selection-end-column="21" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
             <element signature="e#992#1118#0" />
-            <element signature="e#1220#2008#0" />
-            <element signature="e#1352#1600#0" />
-            <element signature="e#1373#1477#0" />
             <element signature="e#1850#2008#0" />
             <element signature="e#1895#2008#0" />
             <element signature="e#2107#2497#0" />
@@ -929,10 +933,6 @@
             <element signature="e#11281#12041#0" />
             <element signature="e#11482#11797#0" />
             <element signature="e#12082#12147#0" />
-            <element signature="e#12172#40938#0" />
-            <element signature="e#12294#13196#0" />
-            <element signature="e#12383#12841#0" />
-            <element signature="e#12404#12737#0" />
             <element signature="e#12492#12668#0" />
             <element signature="e#12541#12668#0" />
             <element signature="e#12612#12668#0" />
