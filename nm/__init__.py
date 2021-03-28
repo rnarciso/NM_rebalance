@@ -10,7 +10,7 @@ from itertools import permutations
 from collections.abc import Collection
 # noinspection PyPackageRequirements
 from binance.exceptions import BinanceAPIException
-from nm.util import math, next_date, safe_save, sum_dict_values, truncate
+from nm.util import downgrade_pickle, math, next_date, safe_save, sum_dict_values, truncate
 
 AT_SIGN = ' às '
 COIN_MARKET_COLUMNS = ['volume_24h', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'market_cap']
@@ -50,7 +50,7 @@ class Backtest:
         self.daily_yield = self.load(datafile)
         self.filename = datafile
         self.yield_df_columns = [f'NM{i}' for i in range(1, NM_MAX + 1)]
-        self.binance_api = None
+        self._binance_api = None
         for column in self.yield_df_columns.copy():
             for suffix in ['', ' time']:
                 for feature in ['bottom', 'top']:
@@ -62,9 +62,14 @@ class Backtest:
     def __str__(self):
         return self.daily_yield.__str__()
 
+    @property
+    def binance_api(self):
+        if self._binance_api is None:
+            self._binance_api = Portfolio(connect=True)
+        return self._binance_api
+
     # noinspection PyUnboundLocalVariable
-    @staticmethod
-    def load(datafile=None):
+    def load(self, datafile=None):
         if datafile is None:
             try:
                 # noinspection PyPep8Naming,PyShadowingNames
@@ -73,8 +78,13 @@ class Backtest:
                 datafile = YIELD_FILE
         try:
             return pd.read_pickle(datafile)
-        except (FileNotFoundError, ValueError):
+        except FileNotFoundError:
             return pd.DataFrame()
+        except ValueError:
+            downgrade_pickle(datafile)
+            return self.load(datafile)
+        except Exception as e:
+            logging.error(e)
 
     def save(self):
         if self.filename is None:
@@ -92,8 +102,6 @@ class Backtest:
             from_date = pd.Timestamp('now')
         if to_date is None:
             to_date = next_date(from_date)
-        if self.binance_api is None:
-            self.binance_api = Portfolio(connect=True)
         binance_api = self.binance_api
         if accounts is None:
             portfolios = [1, 2, 4]
@@ -171,25 +179,42 @@ class Backtest:
             from_date = next_date(from_date)
         else:
             from_date = pd.Timestamp(from_date)
-        if to_date is None:
-            to_date = pd.Timestamp('now')
-        elif isinstance(to_date, int):
-            to_date = next_date(from_date, to_date)
-        else:
-            to_date = next_date(to_date)
-        if to_date < from_date:
-            date = to_date
-            to_date = from_date
-            from_date = date
-        from_date = pd.Timestamp(from_date).normalize()
-        to_date = pd.Timestamp(to_date).normalize()
-        accounts = [{'index': i, 'top_n': top_n} for i in range(1, NM_MAX + 1)]
-        new_data = self.yield_report(from_date, to_date, accounts=accounts)
-        if new_data is not None:
-            new_data = new_data[set(self.yield_df_columns).intersection(new_data.columns)]
-            self.daily_yield = pd.concat([self.daily_yield, new_data])
-            self.save()
+        if from_date.normalize() < pd.Timestamp('now').normalize():
+            if to_date is None:
+                to_date = pd.Timestamp('now')
+            elif isinstance(to_date, int):
+                to_date = next_date(from_date, to_date)
+            else:
+                to_date = next_date(to_date)
+            if to_date < from_date:
+                date = to_date
+                to_date = from_date
+                from_date = date
+            from_date = pd.Timestamp(from_date).normalize()
+            to_date = pd.Timestamp(to_date).normalize()
+            accounts = [{'index': i, 'top_n': top_n} for i in range(1, NM_MAX + 1)]
+            new_data = self.yield_report(from_date, to_date, accounts=accounts)
+            if new_data is not None:
+                new_data = new_data[set(self.yield_df_columns).intersection(new_data.columns)]
+                self.daily_yield = pd.concat([self.daily_yield, new_data])
+                self.save()
         return self.daily_yield
+
+    def nm_index_yield_for_period(self, nm_index, from_date, to_date=None, fees=True, slippage=0.003):
+        gross_yield = self.daily_yield[f'NM{nm_index}'][from_date:to_date] / 100
+        liquid_yield = np.average(gross_yield)
+        if fees:
+            liquid_yield *= (1 - np.average(self.binance_api.fees.taker) * 2)
+        if slippage is not None:
+            liquid_yield *= (1 - slippage)
+        liquid_yield = (1 + liquid_yield) ** len(gross_yield)
+        return liquid_yield
+
+    def account_yield_for_period(self, accounts, from_date, *kwargs):
+        if isinstance(accounts, dict):
+            accounts = [accounts]
+        return np.average([self.nm_index_yield_for_period(account.get('index'),
+                          from_date, *kwargs) for account in accounts])
 
 
 class NMData:
@@ -239,6 +264,9 @@ class NMData:
             self._nm_data = pd.read_pickle(datafile)
         except FileNotFoundError:
             pass
+        except ValueError:
+            downgrade_pickle(datafile)
+            return self.load(datafile)
         except Exception as e:
             logging.error(e)
         return self._nm_data
@@ -275,7 +303,6 @@ class NMData:
             df = df[['symbol', f'NM{index}']].sort_values(f'NM{index}', ascending=False).set_index('symbol')
 
         return df
-
 
     def get_nm_data(self, url=None):
         if url is None:
@@ -518,10 +545,11 @@ class Portfolio:
             small_balances.pop(bnb_index)
         except ValueError:
             pass
-        try:
-            self.transfer_dust(asset=','.join(small_balances))
-        except BinanceAPIException as e:
-            logging.error(f'{e}. Assets: {small_balances}.')
+        if len(small_balances) > 0:
+            try:
+                self.transfer_dust(asset=','.join(small_balances))
+            except BinanceAPIException as e:
+                logging.error(f'{e}. Assets: {small_balances}.')
 
     def fit_market_order(self, market=f'BTC{QUOTE_ASSET}', quote_amount=None, side=SIDE_BUY, add_fee=True):
         # noinspection PyShadowingNames

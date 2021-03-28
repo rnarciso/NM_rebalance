@@ -1,11 +1,15 @@
 import os
 import math
 import logging
-import pickle
+import pickle5 as pickle
 import pandas as pd
 from functools import reduce
 
 PICKLE_PROTOCOL = 4
+
+
+def downgrade_pickle(filename):
+    pickle.dump(pickle.load(open(filename, 'rb')), open(filename, 'wb'), protocol=PICKLE_PROTOCOL)
 
 
 def sum_dict_values(*args):
@@ -27,7 +31,6 @@ def truncate(number: float, step) -> str:
 
 
 def safe_save(self, datafile=None) -> bool:
-
     if datafile is None and hasattr(self, 'filename'):
         datafile = getattr(self, 'filename')
     try:
