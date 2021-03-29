@@ -238,9 +238,9 @@ class Backtest:
                 coins_for_date = self.advisor.get(nm_index, date)[:top_n]
                 coins_for_date['date'] = date
                 coins_for_date['yield'] = coins_for_date.apply(coin_yield, axis=1)
-                value = value * (1 + coins_for_date['yield'].mean())
                 df.loc[date, f'NM{nm_index} coins'] = ','.join(coins_for_date.index)
-                df.loc[date, f'NM{nm_index} yield'] = coins_for_date['yield'].mean()
+                df.loc[date, f'NM{nm_index} yield'] = coins_for_date['yield'].mean() * 100
+                value = value * (1 + df.loc[date, f'NM{nm_index} yield'] / 100 )
                 df.loc[date, 'close'] = value
                 new_coins = set(coins_for_date.index).difference(last_set_of_coins)
                 if fees:
@@ -253,6 +253,8 @@ class Backtest:
                 df.loc[date, 'adjusted close'] = value
             except Exception as e:
                 logging.error(f'\n{e}, while processing data for {date.date()}.')
+
+            return df
 
 
 class NMData:
