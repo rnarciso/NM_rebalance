@@ -54,7 +54,8 @@ def rebalance(argv):
                     first_run = False
                     rebalancing_completed = False
                     account['force_first_rebalance'] = False
-                    if account.get('convert_small_balances_before_rebalance', False):
+                    if account.get('convert_small_balances_before_rebalance', False) and not dry_run:
+                        logging.info('Converting small balances...')
                         account['portfolio'].convert_small_balances()
                     logging.info('Getting new NM data...')
                     nm_retries = DEFAULT_RETRIES

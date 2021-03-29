@@ -10,7 +10,7 @@ from itertools import permutations
 from collections.abc import Collection
 # noinspection PyPackageRequirements
 from binance.exceptions import BinanceAPIException
-from nm.util import downgrade_pickle, math, next_date, safe_save, sum_dict_values, truncate
+from nm.util import downgrade_pickle, math, next_date, readable_kline, safe_save, sum_dict_values, truncate
 
 AT_SIGN = ' às '
 COIN_MARKET_COLUMNS = ['volume_24h', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'market_cap']
@@ -26,6 +26,7 @@ ORDER_AMOUNT_REDUCING_FACTOR = 5 / 100
 QUOTE_ASSET = 'USDT'
 SINCE = '20191231'
 SYMBOL = 'symbol'
+STATEMENT_FILE = 'statement.dat'
 UPDATED = 'atualizado'
 UPDATED_ON: str = f'{UPDATED} em'
 TOP_N_MAX = 4
@@ -130,22 +131,20 @@ class Backtest:
                         retries = 3
                         while len(coin_data) < 1440 and retries > 0:
                             try:
-                                coin_data = pd.DataFrame(binance_api.get_historical_klines(symbol, candle,
-                                                         from_date.strftime('%Y-%m-%d'), date_range[i + 1].strftime
-                                                         ('%Y-%m-%d'))).apply(pd.to_numeric)
+                                coin_data = binance_api.get_historical_klines(symbol, candle, from_date.strftime(
+                                                                              '%Y-%m-%d'), date_range[i + 1].strftime(
+                                                                              '%Y-%m-%d'))
                             except Exception as e:
                                 logging.error(e)
                                 pass
                             retries -= 1
-                        coin_data.columns = ['Open time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close time',
-                                             'Quote asset volume', 'Number of trades', 'Taker buy base asset volume',
-                                             'Taker buy quote asset volume', 'Ignore']
+                        coin_data = readable_kline(coin_data)
                         nm_for_date[coin] = (coin_data['Close'] / prices[coin] - 1)*100
 
                 nm_for_date[f'NM{nm_index}'] = nm_for_date.apply(lambda row: np.average([v for k, v in row.items()
                                                                  if k in nm_coins]), axis=1)
             try:
-                nm_for_date['time'] = (coin_data['Open time'] * 10**6).apply(pd.Timestamp).values
+                nm_for_date['time'] = coin_data['Open time']
             except KeyError:
                 continue
             features_for_date = nm_for_date[nm_for_date['time'] < date_range[i+1]].iloc[-1]
@@ -201,7 +200,7 @@ class Backtest:
         return self.daily_yield
 
     def nm_index_yield_for_period(self, nm_index, from_date, to_date=None, fees=True, slippage=0.003):
-        gross_yield = self.daily_yield[f'NM{nm_index}'][from_date:to_date] / 100
+        gross_yield = (self.daily_yield[f'NM{nm_index}'][from_date:to_date] / 100).values
         liquid_yield = np.average(gross_yield)
         if fees:
             liquid_yield *= (1 - np.average(self.binance_api.fees.taker) * 2)
@@ -216,6 +215,45 @@ class Backtest:
         return np.average([self.nm_index_yield_for_period(account.get('index'),
                           from_date, *kwargs) for account in accounts])
 
+    def nm_index_by_simulation(self, nm_index, from_date, to_date=None, fees=True, slippage=0.003, initial_value=1,
+                               top_n=4, fee_type='taker'):
+        # noinspection PyShadowingNames
+        def coin_yield(row):
+            coin_name = row.name
+            date = row.date
+            try:
+                coin_data = readable_kline(self.binance_api.get_historical_klines(f'{coin_name}{QUOTE_ASSET}',
+                                           Client.KLINE_INTERVAL_1DAY, date.strftime('%Y-%m-%d'),
+                                           date.strftime('%Y-%m-%d'))).iloc[0]
+                return coin_data['Close'] / coin_data['Open'] - 1
+            except Exception as e:
+                logging.error(e)
+
+        value = initial_value
+        df = pd.DataFrame()
+        last_set_of_coins = set()
+        for date in tqdm(pd.date_range(from_date, to_date)):
+            df.loc[date, 'open'] = value
+            try:
+                coins_for_date = self.advisor.get(nm_index, date)[:top_n]
+                coins_for_date['date'] = date
+                coins_for_date['yield'] = coins_for_date.apply(coin_yield, axis=1)
+                value = value * (1 + coins_for_date['yield'].mean())
+                df.loc[date, f'NM{nm_index} coins'] = ','.join(coins_for_date.index)
+                df.loc[date, f'NM{nm_index} yield'] = coins_for_date['yield'].mean()
+                df.loc[date, 'close'] = value
+                new_coins = set(coins_for_date.index).difference(last_set_of_coins)
+                if fees:
+                    value *= (1 - self.binance_api.fees[self.binance_api.fees.index.isin(
+                              [f'{coin_name}{QUOTE_ASSET}' for coin_name in new_coins])][fee_type].mean()
+                              * (2 if date > pd.Timestamp(from_date) else 1) * (len(new_coins)/top_n))
+                if slippage is not None:
+                    value *= (1 - slippage * (2 if date > pd.Timestamp(from_date) else 1) * (len(new_coins)/top_n))
+                last_set_of_coins = set(coins_for_date.index)
+                df.loc[date, 'adjusted close'] = value
+            except Exception as e:
+                logging.error(f'\n{e}, while processing data for {date.date()}.')
+
 
 class NMData:
     _nm_url: str
@@ -224,7 +262,7 @@ class NMData:
         if nm_url is None:
             try:
                 from config import nm_url
-            except (ImportError,ModuleNotFoundError):
+            except (ImportError, ModuleNotFoundError):
                 logging.error("Invalid config.py file, 'nm_url' not specified!")
                 self._nm_url = NM_REPORT_DEFAULT_URL
         self._nm_url = nm_url
@@ -335,7 +373,10 @@ class Portfolio:
     _time_offset: int
 
     def __init__(self, keyname: str = None, connect=False, include_locked=False, config=None):
-        if isinstance(config, dict):
+        if isinstance(keyname, dict):
+            self._config = config
+            keyname = config.get('account_name')
+        elif isinstance(config, dict):
             self._config = config
         else:
             try:
@@ -358,7 +399,7 @@ class Portfolio:
         self._time_offset = 0
         self.min_notational = {}
         self.lot_size = {}
-        self.transactions = pd.DataFrame()
+        self.connected = False
         if connect:
             self.connect(keyname)
 
@@ -441,11 +482,11 @@ class Portfolio:
         else:
             api_key = self._config.get('api_key')
             api_secret = self._config.get('api_secret')
-
         try:
             logging.info('Connecting ')
             # noinspection PyUnboundLocalVariable
             self._client = Client(api_key, api_secret)
+            self.connected = True
             return self._client
         except Exception as e:
             logging.error(e)
@@ -909,15 +950,49 @@ class Portfolio:
             for orderId in order_numbers:
                 logging.info(f'Order # {orderId}: {self.order_status(orderId)}')
 
+
+class Statement:
+
+    def __init__(self, load=True, datafile=None):
+        if load and datafile is None:
+            try:
+                # noinspection PyPep8Naming,PyShadowingNames
+                from config import statement_file as STATEMENT_FILE
+            except (ImportError, ModuleNotFoundError):
+                global STATEMENT_FILE
+            datafile = STATEMENT_FILE
+        self.daily_yield = self.load(datafile)
+        self.filename = datafile
+        self._binance_api = Portfolio()
+        self.transactions = self.load(datafile)
+
+    def load(self, datafile=None):
+        if datafile is None:
+            try:
+                # noinspection PyPep8Naming,PyShadowingNames
+                from config import statement_file as STATEMENT_FILE
+            except (ImportError, ModuleNotFoundError):
+                global STATEMENT_FILE
+                datafile = STATEMENT_FILE
+        try:
+            return pd.read_pickle(datafile)
+        except FileNotFoundError:
+            return pd.DataFrame()
+        except ValueError:
+            downgrade_pickle(datafile)
+            return self.load(datafile)
+        except Exception as e:
+            logging.error(e)
+
     def statement(self, since=None):
         trades = []
         last_transaction = None
-        symbols = [i.get('symbol') for i in self.get_all_tickers()]
+        symbols = [i.get('symbol') for i in self._binance_api.get_all_tickers()]
         for symbol in tqdm(symbols):
             try:
                 if since is not None:
                     since = pd.Timestamp(since).value // 10**6
-                    trades += self.get_my_trades(symbol=symbol, startTime=since)
+                    trades += self._binance_api.get_my_trades(symbol=symbol, startTime=since)
                 else:
                     try:
                         last_transaction = self.transactions[self.transactions.symbol == symbol].time.max(
@@ -941,7 +1016,7 @@ class Portfolio:
                                      ['results']['rows'] if i.get('logs') is not None])
         except KeyError:
             try:
-                dusts = pd.DataFrame([i.get('logs')[0] for i in self.get_dust_log()['results']
+                dusts = pd.DataFrame([i.get('logs')[0] for i in self._binance_api.get_dust_log()['results']
                                      ['rows'] if i.get('logs') is not None])
             except Exception as e:
                 logging.error(e)
