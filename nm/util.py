@@ -77,3 +77,14 @@ def readable_kline(klines):
     kline.columns = columns
     kline['Open time'] = pd.to_datetime(kline['Open time'] * 10**6)
     return kline
+
+
+def tz_remove_and_normalize(date):
+    try:
+        try:
+            return pd.Timestamp(date).normalize().tz_convert(None)
+        except TypeError:
+            return pd.Timestamp(date).normalize()
+    except ValueError:
+        return tz_remove_and_normalize('now')
+
