@@ -30,6 +30,15 @@ def truncate(number: float, step) -> str:
     return f'%.{digits}f' % (int(number*10**digits)/10**digits)
 
 
+# noinspection PyBroadException
+def is_serializable(obj):
+    try:
+        pickle.loads(pickle.dumps(obj))
+        return True
+    except:
+        return False
+
+
 def safe_save(self, datafile=None) -> bool:
     if datafile is None and hasattr(self, 'filename'):
         datafile = getattr(self, 'filename')
@@ -87,4 +96,5 @@ def tz_remove_and_normalize(date):
             return pd.Timestamp(date).normalize()
     except ValueError:
         return tz_remove_and_normalize('now')
+
 
