@@ -454,10 +454,10 @@ class MarketModels:
         x, y = self.XY_from_df(df, features, target, n_features, regression, exclude,
                                test_size=test_size, random_state=random_state, train=True)
         model_dict = self._models
-        model_dict[model_name] = {'model': self.model_train(*self.trim_XY(x, y), *args,
-                                                            features=features, regression=regression, runTPOT=runTPOT,
-                                                            target=target, **kwargs), 'features': features,
-            'target': target}
+        model_dict[model_name] = {'model': self.model_train(*self.trim_XY(x, y), *args, regression=regression,
+                                                            **kwargs),
+                                  'features': features,
+                                  'target': target}
         self._models = model_dict
         self._last_model_name = model_name
         self.save_models()
