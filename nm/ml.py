@@ -21,6 +21,14 @@ from sklearn.pipeline import make_union, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
 from tpot.operator_utils import TPOTOperatorClassFactory, Operator, ARGType
 
+TPOT_DEFAULT_CONFIG_DICT = 'TPOT light'
+
+YIELD = 'others_dr'
+
+SYMBOL = 'symbol'
+
+OPEN_TIME = 'date'
+
 DEFAULT_IMP_METHOD = 'coef'
 
 MODELS_FILENAME = 'models.dat'
@@ -279,11 +287,8 @@ class MarketModels:
     def model(self):
         if self._last_model_name is not None and len(self._last_model_name) > 0:
             return {k: (lambda model: model.fitted_pipeline_ if isinstance(model,
-                                                                           (tpot.TPOTRegressor,
-                                                                           tpot.TPOTClassifier)) and hasattr(model,
-                                                                                                             'fitted_pipeline_') else model)(
-                m.get('model')) for k, m
-                in self._models.items()}.get(self._last_model_name)
+                    (tpot.TPOTRegressor, tpot.TPOTClassifier)) and hasattr(model, 'fitted_pipeline_') else model
+                    )(m.get('model')) for k, m in self._models.items()}.get(self._last_model_name)
         else:
             return {k: m.get('model') for k, m in self._models.items()}
 
@@ -318,17 +323,17 @@ class MarketModels:
     @staticmethod
     def target_imputation(df, target):
         if target is None:
-            target = 'delta'
-        if target == 'delta':
+            target = YIELD
+        if target == YIELD:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                df2 = df.reset_index().sort_values(['Symbol', 'Open time'])
+                df2 = df.reset_index().sort_values([SYMBOL, OPEN_TIME])
                 df2[target] = ((df2.Close - df2.Open) / df2.Open * 100).shift(-1)
-                df2.loc[df2[df2.Symbol != df2.Symbol.shift(-1)]['delta'].index, 'delta'] = np.NaN
+                df2.loc[df2[df2[SYMBOL] != df2[SYMBOL].shift(-1)][YIELD].index, YIELD] = np.NaN
                 df_index_name = df.index.name
                 df = df.reset_index()
                 df[target] = df2[target]
-                df = df.set_index(df_index_name)
+                df = df.set_index('index' if df_index_name is None else df_index_name)
         return df, target
 
     def purge(self):
@@ -350,8 +355,8 @@ class MarketModels:
                 regression = False
         return regression
 
-    def model_train(self, X, Y, regression=False, max_time_mins=5 * 60, max_eval_time_mins=1, early_stop=5,
-                    config_dict='TPOT light'):
+    def model_train(self, X, Y, regression=None, max_time_mins=5 * 60, max_eval_time_mins=1, early_stop=5,
+                    config_dict=TPOT_DEFAULT_CONFIG_DICT):
 
         params = dict(max_time_mins=max_time_mins,
                       max_eval_time_mins=max_eval_time_mins,
@@ -360,6 +365,7 @@ class MarketModels:
                       verbosity=3,
                       n_jobs=-1,
                       config_dict=config_dict)
+        regression = self.model_type(Y, regression)
         if regression:
             model = tpot.TPOTRegressor(**params)
         else:
@@ -388,7 +394,7 @@ class MarketModels:
                 features = self.valid_as_features_columns(df, target, exclude)
         elif not isinstance(features, Iterable):
             features = [features]
-        return features
+        return features, target
 
     def model_name_imputation(self, model_name, target):
         if model_name is None:
@@ -402,12 +408,16 @@ class MarketModels:
                 else:
                     logging.error(' Please specify a model name to make!')
                     return
-            model_name = model_name.replace(' ', '_')
+            try:
+                model_name = model_name.replace(' ', '_')
+            except AttributeError:
+                logging.error(' Please specify a model name to make!')
+                return
         return model_name
 
-    def XY_from_df(self, df, features=None, target=None, n_features=None, regression=None, exclude=(),
-                   drop_target_na=True, fill_features_na=True, trimXY=True, test_size=None, random_state=None,
-                   train=True):
+    def get_xy_from_df(self, df, features=None, target=None, n_features=None, regression=None, exclude=(),
+                       drop_target_na=True, fill_features_na=True, trimXY=True, test_size=None, random_state=None,
+                       train=True):
         if test_size is None:
             test_size = 0.2
         if random_state is None:
@@ -418,15 +428,15 @@ class MarketModels:
             target = self.target
         if n_features == 'all' or features == 'all':
             n_features = None
-        df, target = self.target_imputation(df, target)
+            features = None
         if drop_target_na:
             df = df.dropna(subset=[target])
         y = df[target].values
         regression = self.model_type(y, regression)
         if not regression:
             y = y > 0
-        features = self.features_imputation(df, exclude=exclude, features=features, n_features=n_features,
-                                            target=target)
+        features, target = self.features_imputation(df, exclude=exclude, features=features, n_features=n_features,
+                                                    target=target)
         if fill_features_na:
             x = df[features].fillna(method='bfill').values.astype('float32')
         else:
@@ -441,18 +451,15 @@ class MarketModels:
         else:
             return x, y
 
-    def make_model(self, df, *args, features=None, target=None, n_features=10, regression=None,
-                   runTPOT=False, model_name: str = None, exclude=(), test_size=None, random_state=None, **kwargs):
+    def make_model(self, df, target, *args, model_name: str = None, features=None, n_features=10, regression=None,
+                   exclude=(), test_size=None, random_state=None, **kwargs):
         self.deactivate()
-        df, target = self.target_imputation(df, target)
-        features = self.features_imputation(df, exclude=exclude, features=features, n_features=n_features,
-                                            target=target)
         model_name = self.model_name_imputation(model_name, target)
         if model_name is None:
             return
-        regression = self.model_type(df[target], regression)
-        x, y = self.XY_from_df(df, features, target, n_features, regression, exclude,
-                               test_size=test_size, random_state=random_state, train=True)
+        x, y = self.get_xy_from_df(df, features, target, n_features, regression, exclude,
+                                   test_size=test_size, random_state=random_state, train=True)
+        regression = self.model_type(y, regression)
         model_dict = self._models
         model_dict[model_name] = {'model': self.model_train(*self.trim_XY(x, y), *args, regression=regression,
                                                             **kwargs),
@@ -495,10 +502,8 @@ class MarketModels:
     def get_method_and_model_name(self, model_name, models):
         if models is None:
             models = self._models.copy()
-            fitted_model = (lambda model: model.fitted_pipeline_ if isinstance(model,
-                                                                               (tpot.TPOTRegressor,
-                                                                               tpot.TPOTClassifier)) and hasattr(model,
-                                                                                                                 'fitted_pipeline_') else model)
+            fitted_model = (lambda model: model.fitted_pipeline_ if isinstance(model, (tpot.TPOTRegressor,
+                            tpot.TPOTClassifier)) and hasattr(model,'fitted_pipeline_') else model)
             models = {k: {k1: v if k1 != 'model' else fitted_model(k1)} for k, md in models.items() for k1, v in
             md.items()}
 
@@ -528,7 +533,7 @@ class MarketModels:
             if features is None:
                 features = self.features
             if features is None:
-                features = self.features_imputation(df, exclude=exclude, n_features=n_features, target=target)
+                features, target = self.features_imputation(df, exclude=exclude, n_features=n_features, target=target)
             if target is None:
                 target = self.target
             if target is None:
@@ -546,7 +551,7 @@ class MarketModels:
             if features is None:
                 features = self.features
             if features is None:
-                features = self.features_imputation(df, exclude=exclude, n_features=n_features, target=target)
+                features, target = self.features_imputation(df, exclude=exclude, n_features=n_features, target=target)
             if target is None:
                 target = self.target
             if target is None:
@@ -610,7 +615,7 @@ class MarketModels:
             target = self.target
         if features is None:
             features = self.features
-            features = self.features_imputation(df, features=features, exclude=exclude, target=target)
+            features, target = self.features_imputation(df, features=features, exclude=exclude, target=target)
         features_df = pd.DataFrame(columns=features)
         if method == 'all':
             return pd.DataFrame.from_dict({m: self.test_features_relevance(df, method=m) for m in

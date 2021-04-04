@@ -54,7 +54,7 @@ def adjust(from_date, to_date, default_date=None):
     if from_date is None:
         try:
             from_date = default_date
-            if pd.Timestamp(from_date) is pd.NaT or tz_remove_and_normalize(from_date) < tz_remove_and_normalize(SINCE):
+            if pd.Timestamp(from_date) is pd.NaT:
                 raise ValueError
         except ValueError:
             from_date = SINCE
@@ -1255,7 +1255,7 @@ class NMData:
         if self.history is not None and 'date' in self.history.columns:
             return self.history.date.max().tz_localize(NM_TIME_ZONE)
         else:
-            return pd.Timestamp(SINCE)
+            return pd.Timestamp(EXCHANGE_OPENING_DATE)
 
     def load(self, datafile=None):
         if datafile is None:
@@ -1407,6 +1407,11 @@ class NMData:
 
         return test.T.rms.sort_values()
 
+    def ta_data(self, nm_index, n=None):
+        return self.history[['date', 'symbol', f'NM{nm_index}']].iloc[:n].join(
+            self.history[['date', 'symbol']].iloc[:n].progress_apply(
+            lambda row: self.coins.ta(row['symbol'], from_date=row['date'] - pd.Timedelta(100, 'days')
+            ).asof(next_date(row['date'])), axis=1)).drop(['Asset', 'Close time'], axis='columns')
 
 class Statement:
     def __init__(self, load=True, datafile=None):

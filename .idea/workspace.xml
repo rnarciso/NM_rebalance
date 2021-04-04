@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="">
+    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="ML module in implementation">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nm/ml.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/ml.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -18,15 +20,12 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="203">
-              <caret line="829" column="30" lean-forward="true" selection-start-line="829" selection-start-column="30" selection-end-line="829" selection-end-column="30" />
+            <state relative-caret-position="1704">
+              <caret line="1413" column="98" lean-forward="true" selection-start-line="1413" selection-start-column="98" selection-end-line="1413" selection-end-column="98" />
               <folding>
                 <element signature="e#1373#1499#0" />
                 <element signature="e#1593#1714#0" />
                 <element signature="e#1568#2551#0" />
-                <element signature="e#1598#1891#0" />
-                <element signature="e#1615#1793#0" />
-                <element signature="e#2059#2521#0" />
                 <element signature="e#2340#2415#0" />
                 <element signature="e#2795#3090#0" />
                 <element signature="e#2576#27944#0" />
@@ -154,6 +153,7 @@
                 <element signature="e#4095#4464#0" />
                 <element signature="e#4612#4644#0" />
                 <element signature="e#4675#4702#0" />
+                <element signature="e#30336#37656#0" />
                 <element signature="e#5342#5372#0" />
                 <element signature="e#5405#5434#0" />
                 <element signature="e#5485#5603#0" />
@@ -178,6 +178,7 @@
                 <element signature="e#36445#36837#0" />
                 <element signature="e#36954#37456#0" />
                 <element signature="e#37782#38766#0" />
+                <element signature="e#37528#51133#0" />
                 <element signature="e#11809#12250#0" />
                 <element signature="e#12092#12250#0" />
                 <element signature="e#12137#12250#0" />
@@ -203,7 +204,6 @@
                 <element signature="e#22574#22866#0" />
                 <element signature="e#22928#23083#0" />
                 <element signature="e#23460#23731#0" />
-                <element signature="e#52447#62546#0" />
                 <element signature="e#24379#24399#0" />
                 <element signature="e#24521#24756#0" />
                 <element signature="e#24639#24756#0" />
@@ -229,6 +229,7 @@
                 <element signature="e#28426#29181#0" />
                 <element signature="e#28625#28940#0" />
                 <element signature="e#29222#29285#0" />
+                <element signature="e#57503#61437#0" />
                 <element signature="e#58041#58167#0" />
                 <element signature="e#58319#58446#0" />
                 <element signature="e#58502#58625#0" />
@@ -268,19 +269,6 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/nm/ml.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-5">
-              <caret line="443" column="15" selection-start-line="443" selection-start-column="8" selection-end-line="443" selection-end-column="15" />
-              <folding>
-                <element signature="e#0#11#0" expanded="true" />
-                <element signature="e#9668#9990#0" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nm/util.py">
           <provider selected="true" editor-type-id="text-editor">
@@ -303,6 +291,18 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/nm/ml.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="149">
+              <caret line="367" column="51" lean-forward="true" selection-start-line="367" selection-start-column="51" selection-end-line="367" selection-end-column="51" />
+              <folding>
+                <element signature="e#0#11#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -315,14 +315,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>refre</find>
-      <find>nm_url</find>
-      <find>Config</find>
-      <find>self</find>
-      <find>4</find>
-      <find>USDT</find>
-      <find>import</find>
-      <find>ImportError</find>
       <find>(ImportError,ModuleNotFoundError)</find>
       <find>read_pick</find>
       <find>small</find>
@@ -343,7 +335,16 @@
       <find>safe_save</find>
       <find>yield_for_coins</find>
       <find>XY_from_df</find>
+      <find>make_mo</find>
       <find>nm_index_yield_for_period</find>
+      <find>make_model</find>
+      <find>features_imputation</find>
+      <find>split</find>
+      <find>SINCE</find>
+      <find>model_train</find>
+      <find>make_modl</find>
+      <find>make_mode</find>
+      <find>regress</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -362,8 +363,8 @@
         <option value="$PROJECT_DIR$/rebalance.py" />
         <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/nm/util.py" />
-        <option value="$PROJECT_DIR$/nm/ml.py" />
         <option value="$PROJECT_DIR$/nm/__init__.py" />
+        <option value="$PROJECT_DIR$/nm/ml.py" />
       </list>
     </option>
   </component>
@@ -788,7 +789,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617554879520</updated>
     </task>
-    <option name="localTasksCounter" value="42" />
+    <task id="LOCAL-00042" summary="ML module in implementation">
+      <created>1617557769590</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1617557769595</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="TodoView">
@@ -802,7 +810,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="25" width="1440" height="821" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
       <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49744898" visible="true" weight="0.15665236" />
@@ -814,7 +821,7 @@
       <window_info active="true" anchor="bottom" id="Python Console" order="4" sideWeight="0.49713877" visible="true" weight="0.45781466" />
       <window_info anchor="bottom" id="Docker" order="5" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="6" />
-      <window_info anchor="bottom" id="Find" order="7" weight="0.32823366" />
+      <window_info anchor="bottom" id="Find" order="7" weight="0.32780084" />
       <window_info anchor="bottom" id="Run" order="8" weight="0.32956153" />
       <window_info anchor="bottom" id="Debug" order="9" sideWeight="0.4985694" weight="0.39695713" />
       <window_info anchor="bottom" id="Cvs" order="10" weight="0.25" />
@@ -881,6 +888,16 @@
           <line>1401</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/nm/ml.py</url>
+          <line>463</line>
+          <option name="timeStamp" value="27" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/nm/ml.py</url>
+          <line>443</line>
+          <option name="timeStamp" value="28" />
+        </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
@@ -889,6 +906,15 @@
     <watches-manager>
       <configuration name="PythonConfigurationType">
         <watch expression="nm_data._nm_data" language="Python" />
+      </configuration>
+      <configuration name="Python Console Debugger">
+        <watch expression="df.columns" language="Python" />
+        <watch expression="df.reset_index().sort_values([SYMBOL, OPEN_TIME])" language="Python" />
+        <watch expression="df2.loc[df2[df2.Symbol != df2.Symbol.shift(-1)][YIELD].index, YIELD]" language="Python" />
+        <watch expression="df_index_name" language="Python" />
+        <watch expression="df.index.name" language="Python" />
+        <watch expression="self.features_imputation(df, exclude=exclude, features=features, n_features=n_features,                                             target=target)" language="Python" />
+        <watch expression="self.model_train(*self.trim_XY(x, y), *args, regression=regression,                                                             **kwargs)" language="Python" />
       </configuration>
     </watches-manager>
   </component>
@@ -915,6 +941,41 @@
     </expressions>
     <expressions id="watch">
       <expression>
+        <expression-string>self.model_train(*self.trim_XY(x, y), *args, regression=regression,                                                             **kwargs)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>self.features_imputation(df, exclude=exclude, features=features, n_features=n_features,                                             target=target)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>df.index.name</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>df_index_name</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>df2.loc[df2[df2.Symbol != df2.Symbol.shift(-1)][YIELD].index, YIELD]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>df.reset_index().sort_values([SYMBOL, OPEN_TIME])</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>df.columns</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
         <expression-string>coin_yields_for_date['diff']</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
@@ -926,36 +987,6 @@
       </expression>
       <expression>
         <expression-string>coin_yields_for_date</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>abs(coin_yields_for_date['yield'] - yield_for_date)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_yields_for_date['yield'] - yield_for_date</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_yields_for_date = CoinData().history[next_date(date, -1): date]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_yields_for_date.iloc[split+1:]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_yields_for_date.iloc[split:]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>[coin_yields_for_date.iloc[split:]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -1088,13 +1119,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/generic.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="5464" selection-start-line="5464" selection-end-line="5464" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/requirements.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="108">
@@ -1123,24 +1147,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/code.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="117">
-          <caret line="89" selection-start-line="89" selection-end-line="89" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/dateutil/parser/_parser.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="189">
           <caret line="648" selection-start-line="648" selection-end-line="648" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/frame.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="339">
-          <caret line="7767" selection-start-line="7767" selection-end-line="7767" />
         </state>
       </provider>
     </entry>
@@ -1155,13 +1165,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="39">
           <caret line="804" selection-start-line="804" selection-end-line="804" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/indexes/base.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="303">
-          <caret line="4296" selection-start-line="4296" selection-end-line="4296" />
         </state>
       </provider>
     </entry>
@@ -1197,17 +1200,56 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/generic.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="241">
+          <caret line="5464" selection-start-line="5464" selection-end-line="5464" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/frame.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="115">
+          <caret line="4726" selection-start-line="4726" selection-end-line="4726" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/indexes/base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="303">
+          <caret line="3081" selection-start-line="3081" selection-end-line="3081" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/code.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="117">
+          <caret line="89" selection-start-line="89" selection-end-line="89" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/tpot/base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="163">
+          <caret line="727" selection-start-line="727" selection-end-line="727" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/sklearn/model_selection/_split.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="161">
+          <caret line="2174" selection-start-line="2174" selection-end-line="2174" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="203">
-          <caret line="829" column="30" lean-forward="true" selection-start-line="829" selection-start-column="30" selection-end-line="829" selection-end-column="30" />
+        <state relative-caret-position="1704">
+          <caret line="1413" column="98" lean-forward="true" selection-start-line="1413" selection-start-column="98" selection-end-line="1413" selection-end-column="98" />
           <folding>
             <element signature="e#1373#1499#0" />
             <element signature="e#1593#1714#0" />
             <element signature="e#1568#2551#0" />
-            <element signature="e#1598#1891#0" />
-            <element signature="e#1615#1793#0" />
-            <element signature="e#2059#2521#0" />
             <element signature="e#2340#2415#0" />
             <element signature="e#2795#3090#0" />
             <element signature="e#2576#27944#0" />
@@ -1335,6 +1377,7 @@
             <element signature="e#4095#4464#0" />
             <element signature="e#4612#4644#0" />
             <element signature="e#4675#4702#0" />
+            <element signature="e#30336#37656#0" />
             <element signature="e#5342#5372#0" />
             <element signature="e#5405#5434#0" />
             <element signature="e#5485#5603#0" />
@@ -1359,6 +1402,7 @@
             <element signature="e#36445#36837#0" />
             <element signature="e#36954#37456#0" />
             <element signature="e#37782#38766#0" />
+            <element signature="e#37528#51133#0" />
             <element signature="e#11809#12250#0" />
             <element signature="e#12092#12250#0" />
             <element signature="e#12137#12250#0" />
@@ -1384,7 +1428,6 @@
             <element signature="e#22574#22866#0" />
             <element signature="e#22928#23083#0" />
             <element signature="e#23460#23731#0" />
-            <element signature="e#52447#62546#0" />
             <element signature="e#24379#24399#0" />
             <element signature="e#24521#24756#0" />
             <element signature="e#24639#24756#0" />
@@ -1410,6 +1453,7 @@
             <element signature="e#28426#29181#0" />
             <element signature="e#28625#28940#0" />
             <element signature="e#29222#29285#0" />
+            <element signature="e#57503#61437#0" />
             <element signature="e#58041#58167#0" />
             <element signature="e#58319#58446#0" />
             <element signature="e#58502#58625#0" />
@@ -1450,11 +1494,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nm/ml.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-5">
-          <caret line="443" column="15" selection-start-line="443" selection-start-column="8" selection-end-line="443" selection-end-column="15" />
+        <state relative-caret-position="149">
+          <caret line="367" column="51" lean-forward="true" selection-start-line="367" selection-start-column="51" selection-end-line="367" selection-end-column="51" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-            <element signature="e#9668#9990#0" />
           </folding>
         </state>
       </provider>
