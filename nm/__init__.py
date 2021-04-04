@@ -810,9 +810,10 @@ class CoinData:
         for asset in tqdm(assets):
             try:
                 old_data = self.history_for(asset)
-            except KeyError:
+                last_date = old_data.index.max() if old_data.index.max() > from_date else from_date
+            except (KeyError, TypeError):
                 old_data = pd.DataFrame()
-            last_date = old_data.index.max() if old_data.index.max() > from_date else from_date
+                last_date = from_date
             symbol = f'{asset}{QUOTE_ASSET}'
             if symbol not in symbols:
                 symbol = f'{QUOTE_ASSET}{asset}'
