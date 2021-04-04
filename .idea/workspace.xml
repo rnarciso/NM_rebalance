@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="ML module in implementation">
+    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nm/ml.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/ml.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -20,8 +19,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1704">
-              <caret line="1413" column="98" lean-forward="true" selection-start-line="1413" selection-start-column="98" selection-end-line="1413" selection-end-column="98" />
+            <state relative-caret-position="216">
+              <caret line="1414" lean-forward="true" selection-start-line="1414" selection-end-line="1414" />
               <folding>
                 <element signature="e#1373#1499#0" />
                 <element signature="e#1593#1714#0" />
@@ -294,8 +293,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nm/ml.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="149">
-              <caret line="367" column="51" lean-forward="true" selection-start-line="367" selection-start-column="51" selection-end-line="367" selection-end-column="51" />
+            <state relative-caret-position="105">
+              <caret line="504" column="38" selection-start-line="504" selection-start-column="29" selection-end-line="504" selection-end-column="38" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -315,8 +314,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>(ImportError,ModuleNotFoundError)</find>
-      <find>read_pick</find>
       <find>small</find>
       <find>convert_small_balances_before_rebalance</find>
       <find>binance_api</find>
@@ -340,11 +337,13 @@
       <find>make_model</find>
       <find>features_imputation</find>
       <find>split</find>
-      <find>SINCE</find>
       <find>model_train</find>
       <find>make_modl</find>
       <find>make_mode</find>
       <find>regress</find>
+      <find>SINCE</find>
+      <find>tpot</find>
+      <find>Regressor</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -796,7 +795,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617557769595</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="ML module in implementation">
+      <created>1617576229090</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1617576229099</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="TodoView">
@@ -810,6 +816,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="25" width="1440" height="821" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
       <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49744898" visible="true" weight="0.15665236" />
@@ -890,12 +897,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/ml.py</url>
-          <line>463</line>
+          <line>462</line>
           <option name="timeStamp" value="27" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/ml.py</url>
-          <line>443</line>
+          <line>442</line>
           <option name="timeStamp" value="28" />
         </line-breakpoint>
       </breakpoints>
@@ -1244,8 +1251,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1704">
-          <caret line="1413" column="98" lean-forward="true" selection-start-line="1413" selection-start-column="98" selection-end-line="1413" selection-end-column="98" />
+        <state relative-caret-position="216">
+          <caret line="1414" lean-forward="true" selection-start-line="1414" selection-end-line="1414" />
           <folding>
             <element signature="e#1373#1499#0" />
             <element signature="e#1593#1714#0" />
@@ -1494,8 +1501,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nm/ml.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="149">
-          <caret line="367" column="51" lean-forward="true" selection-start-line="367" selection-start-column="51" selection-end-line="367" selection-end-column="51" />
+        <state relative-caret-position="105">
+          <caret line="504" column="38" selection-start-line="504" selection-start-column="29" selection-end-line="504" selection-end-column="38" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>

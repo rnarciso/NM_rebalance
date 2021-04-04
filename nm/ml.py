@@ -157,7 +157,6 @@ def rebuild_me(self):
     self._setup_pset()
     self._setup_toolbox()
     self._pop = self._toolbox.population(n=self.population_size)
-    items = []
     # if not hasattr(creator, 'FitnessMulti'):
     #     creator.create("FitnessMulti", base.Fitness, weights=(-1.0, 1.0))
     # if not hasattr(creator, 'Individual'):
@@ -287,7 +286,7 @@ class MarketModels:
     def model(self):
         if self._last_model_name is not None and len(self._last_model_name) > 0:
             return {k: (lambda model: model.fitted_pipeline_ if isinstance(model,
-                    (tpot.TPOTRegressor, tpot.TPOTClassifier)) and hasattr(model, 'fitted_pipeline_') else model
+                    (Regressor, Classifier)) and hasattr(model, 'fitted_pipeline_') else model
                     )(m.get('model')) for k, m in self._models.items()}.get(self._last_model_name)
         else:
             return {k: m.get('model') for k, m in self._models.items()}
@@ -367,9 +366,9 @@ class MarketModels:
                       config_dict=config_dict)
         regression = self.model_type(Y, regression)
         if regression:
-            model = tpot.TPOTRegressor(**params)
+            model = Regressor(**params)
         else:
-            model = tpot.TPOTClassifier(**params)
+            model = Classifier(**params)
         model.fit(X, Y)
         model.warm_start = True
         return model
@@ -467,10 +466,10 @@ class MarketModels:
                                   'target': target}
         self._models = model_dict
         self._last_model_name = model_name
-        self.save_models()
+        self.save()
         return model_dict
 
-    def save_models(self, models: dict = None, filename=None):
+    def save(self, models: dict = None, filename=None):
 
         if models is None:
             models = self._models
@@ -502,8 +501,8 @@ class MarketModels:
     def get_method_and_model_name(self, model_name, models):
         if models is None:
             models = self._models.copy()
-            fitted_model = (lambda model: model.fitted_pipeline_ if isinstance(model, (tpot.TPOTRegressor,
-                            tpot.TPOTClassifier)) and hasattr(model,'fitted_pipeline_') else model)
+            fitted_model = (lambda model: model.fitted_pipeline_ if isinstance(model,
+                            (Regressor, Classifier)) and hasattr(model,'fitted_pipeline_') else model)
             models = {k: {k1: v if k1 != 'model' else fitted_model(k1)} for k, md in models.items() for k1, v in
             md.items()}
 
