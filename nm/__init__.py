@@ -812,7 +812,7 @@ class CoinData:
                 old_data = self.history_for(asset)
                 last_date = old_data.index.max() if old_data.index.max() > from_date else from_date
             except (KeyError, TypeError):
-                old_data = pd.DataFrame()
+                old_data = pd.DataFrame(columns=['Asset'])
                 last_date = from_date
             symbol = f'{asset}{QUOTE_ASSET}'
             if symbol not in symbols:
