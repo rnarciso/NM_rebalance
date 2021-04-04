@@ -812,7 +812,7 @@ class CoinData:
                 old_data = self.history_for(asset)
                 last_date = old_data.index.max() if old_data.index.max() > from_date else from_date
             except (KeyError, TypeError):
-                old_data = pd.DataFrame(columns=['Asset'])
+                old_data = pd.DataFrame()
                 last_date = from_date
             symbol = f'{asset}{QUOTE_ASSET}'
             if symbol not in symbols:
@@ -823,7 +823,10 @@ class CoinData:
                                           to_date.strftime('%Y-%m-%d'))).set_index('Open time')
                 new_data['Asset'] = asset
                 merged_data = old_data[~(old_data.index >= old_data.index.max())].append(new_data)
-                self.history = self.history[self.history['Asset'] != asset].append(merged_data)
+                try:
+                    self.history = self.history[self.history['Asset'] != asset].append(merged_data)
+                except KeyError:
+                    self.history = self.history.append(merged_data)
             except ValueError:
                 logging.info(f'No data for {symbol} from {from_date} to {to_date}.')
             except Exception as e:
