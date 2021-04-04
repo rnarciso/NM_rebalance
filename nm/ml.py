@@ -1,37 +1,52 @@
 import tpot
+import numbers
+import logging
+import warnings
 import numpy as np
+import pandas as pd
 from copy import copy
+from tqdm import tqdm
+import pickle5 as pickle
 from functools import partial
 from operator import itemgetter
-from deap import tools, base, creator
+from collections import Iterable
+from nm.util import make_bak_file
 from deap.gp import PrimitiveTree
+from deap import tools, base, creator
 from tpot.builtins import StackingEstimator
-from sklearn.preprocessing import FunctionTransformer
+from nm.util import is_serializable, trim_run
+from sklearn.model_selection import train_test_split
+from sklearn.inspection import permutation_importance
 from sklearn.pipeline import make_union, make_pipeline
+from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
 from tpot.operator_utils import TPOTOperatorClassFactory, Operator, ARGType
-from nm.util import is_serializable
 
+DEFAULT_IMP_METHOD = 'coef'
 
-NON_SERIALIZABLE = ('_pop_', '_pareto_front', '_toolbox', '_pset', '_log_file', 'operators_context', 'log_file_', 'operators', 'arguments', 'warm_start', 'generations', '_pop', '_pbar')
+MODELS_FILENAME = 'models.dat'
 
+NON_SERIALIZABLE = (
+'_pop_', '_pareto_front', '_toolbox', '_pset', '_log_file', 'operators_context', 'log_file_', 'operators', 'arguments',
+'warm_start', 'generations', '_pop', '_pbar')
+
+RANDOM_STATE = 41
 
 if not hasattr(creator, 'FitnessMulti'):
     creator.create(
-        name="FitnessMulti",
-        base=base.Fitness,
-        weights=(-1.0, 1.0))
+            name="FitnessMulti",
+            base=base.Fitness,
+            weights=(-1.0, 1.0))
 
 if not hasattr(creator, 'Individual'):
     creator.create(
-        name="Individual",
-        base=PrimitiveTree,
-        fitness=creator.FitnessMulti,
-        statistics=dict,
+            name="Individual",
+            base=PrimitiveTree,
+            fitness=creator.FitnessMulti,
+            statistics=dict,
             )
 
 
 class Regressor(tpot.TPOTRegressor):
-
     non_serializable = set(NON_SERIALIZABLE)
 
     def __getstate__(self):
@@ -59,7 +74,6 @@ class Regressor(tpot.TPOTRegressor):
 
 
 class Classifier(tpot.TPOTClassifier):
-
     non_serializable = set(NON_SERIALIZABLE)
 
     def __getstate__(self):
@@ -136,7 +150,6 @@ def rebuild_me(self):
     self._setup_toolbox()
     self._pop = self._toolbox.population(n=self.population_size)
     items = []
-    keys = []
     # if not hasattr(creator, 'FitnessMulti'):
     #     creator.create("FitnessMulti", base.Fitness, weights=(-1.0, 1.0))
     # if not hasattr(creator, 'Individual'):
@@ -190,7 +203,7 @@ def rebuild_me(self):
         setattr(self, 'evaluated_individuals_', {p.__str__(): (
             lambda v: {'generation': last_gen, 'mutation_count': 0, 'crossover_count': 0, 'predecessor': ('ROOT',),
                 'operator_count'   : v[0], 'internal_cv_score': v[-1]})(self._pareto_front.keys[i].values) for i, p in
-        enumerate(self._pareto_front.items)})
+            enumerate(self._pareto_front.items)})
 
     self.verbosity = 3
     return self
@@ -198,7 +211,7 @@ def rebuild_me(self):
 
 class MarketModels:
 
-    def __init__(self, filename=MODELS_DAT, load=True):
+    def __init__(self, filename=None, load=True):
         self._filename = filename
         self._last_model_name = None
         if load:
@@ -236,6 +249,17 @@ class MarketModels:
         return to_print
 
     @property
+    def filename(self):
+        if self._filename is None:
+            try:
+                # noinspection PyPep8Naming,PyShadowingNames
+                from config import ml_models as MODELS_FILENAME
+            except (ImportError, ModuleNotFoundError):
+                global MODELS_FILENAME
+            self._filename = MODELS_FILENAME
+        return self._filename
+
+    @property
     def features(self):
         features_dict = {}
         for model_name, model_dict in self._models.items():
@@ -255,9 +279,11 @@ class MarketModels:
     def model(self):
         if self._last_model_name is not None and len(self._last_model_name) > 0:
             return {k: (lambda model: model.fitted_pipeline_ if isinstance(model,
-                    (tpot.TPOTRegressor, tpot.TPOTClassifier)) and hasattr(model,
-                    'fitted_pipeline_') else model)(m.get('model')) for k, m
-                    in self._models.items()}.get(self._last_model_name)
+                                                                           (tpot.TPOTRegressor,
+                                                                           tpot.TPOTClassifier)) and hasattr(model,
+                                                                                                             'fitted_pipeline_') else model)(
+                m.get('model')) for k, m
+                in self._models.items()}.get(self._last_model_name)
         else:
             return {k: m.get('model') for k, m in self._models.items()}
 
@@ -324,54 +350,20 @@ class MarketModels:
                 regression = False
         return regression
 
-    def model_train(self, X, Y, *args, regression=False, runTPOT=False,
-                    max_time_mins=5*60, max_eval_time_mins=1,
-                    early_stop=5, config_dict='TPOT light', **kwargs
-                    ):
+    def model_train(self, X, Y, regression=False, max_time_mins=5 * 60, max_eval_time_mins=1, early_stop=5,
+                    config_dict='TPOT light'):
 
-        if runTPOT:
-            params = dict(max_time_mins=max_time_mins,
-                          max_eval_time_mins=max_eval_time_mins,
-                          early_stop=early_stop,
-                          random_state=RANDOM_STATE,
-                          verbosity=3,
-                          n_jobs=-1,
-                          config_dict=config_dict)
-            if regression:
-                model = tpot.TPOTRegressor(**params)
-            else:
-                model = tpot.TPOTClassifier(**params)
+        params = dict(max_time_mins=max_time_mins,
+                      max_eval_time_mins=max_eval_time_mins,
+                      early_stop=early_stop,
+                      random_state=RANDOM_STATE,
+                      verbosity=3,
+                      n_jobs=-1,
+                      config_dict=config_dict)
+        if regression:
+            model = tpot.TPOTRegressor(**params)
         else:
-            if regression:
-                model = make_pipeline(
-                        make_union(
-                                StackingEstimator(estimator=make_pipeline(
-                                        make_union(
-                                                SelectPercentile(score_func=f_regression, percentile=32),
-                                                StackingEstimator(estimator=make_pipeline(
-                                                        StackingEstimator(
-                                                                estimator=DecisionTreeRegressor(max_depth=2,
-                                                                                                min_samples_leaf=9,
-                                                                                                min_samples_split=7)),
-                                                        StackingEstimator(estimator=RidgeCV()),
-                                                        DecisionTreeRegressor(max_depth=1, min_samples_leaf=8,
-                                                                              min_samples_split=5)
-                                                        ))
-                                                ),
-                                        PCA(iterated_power=7, svd_solver="randomized"),
-                                        DecisionTreeRegressor(max_depth=3, min_samples_leaf=15, min_samples_split=8)
-                                        )),
-                                FunctionTransformer(copy)
-                                ),
-                        RidgeCV()
-                        )
-            else:
-                model = make_pipeline(
-                        ZeroCount(),
-                        StackingEstimator(estimator=GaussianNB()),
-                        StandardScaler(),
-                        DecisionTreeClassifier(criterion="gini", max_depth=3, min_samples_leaf=15, min_samples_split=4)
-                        )
+            model = tpot.TPOTClassifier(**params)
         model.fit(X, Y)
         model.warm_start = True
         return model
@@ -413,7 +405,9 @@ class MarketModels:
             model_name = model_name.replace(' ', '_')
         return model_name
 
-    def XY_from_df(self, df, features=None, target=None, n_features=None, regression=None, exclude=(), drop_target_na=True, fill_features_na=True, trimXY=True, test_size=None, random_state=None, train=True):
+    def XY_from_df(self, df, features=None, target=None, n_features=None, regression=None, exclude=(),
+                   drop_target_na=True, fill_features_na=True, trimXY=True, test_size=None, random_state=None,
+                   train=True):
         if test_size is None:
             test_size = 0.2
         if random_state is None:
@@ -431,7 +425,8 @@ class MarketModels:
         regression = self.model_type(y, regression)
         if not regression:
             y = y > 0
-        features = self.features_imputation(df, exclude=exclude, features=features, n_features=n_features, target=target)
+        features = self.features_imputation(df, exclude=exclude, features=features, n_features=n_features,
+                                            target=target)
         if fill_features_na:
             x = df[features].fillna(method='bfill').values.astype('float32')
         else:
@@ -447,10 +442,11 @@ class MarketModels:
             return x, y
 
     def make_model(self, df, *args, features=None, target=None, n_features=10, regression=None,
-                   runTPOT=False, model_name: str=None, exclude=(), test_size=None, random_state=None, **kwargs):
+                   runTPOT=False, model_name: str = None, exclude=(), test_size=None, random_state=None, **kwargs):
         self.deactivate()
         df, target = self.target_imputation(df, target)
-        features = self.features_imputation(df, exclude=exclude, features=features, n_features=n_features, target=target)
+        features = self.features_imputation(df, exclude=exclude, features=features, n_features=n_features,
+                                            target=target)
         model_name = self.model_name_imputation(model_name, target)
         if model_name is None:
             return
@@ -459,14 +455,15 @@ class MarketModels:
                                test_size=test_size, random_state=random_state, train=True)
         model_dict = self._models
         model_dict[model_name] = {'model': self.model_train(*self.trim_XY(x, y), *args,
-                                features=features, regression=regression, runTPOT=runTPOT,
-                                target=target, **kwargs), 'features': features, 'target': target}
+                                                            features=features, regression=regression, runTPOT=runTPOT,
+                                                            target=target, **kwargs), 'features': features,
+            'target': target}
         self._models = model_dict
         self._last_model_name = model_name
         self.save_models()
         return model_dict
 
-    def save_models(self, models: dict=None, filename=None):
+    def save_models(self, models: dict = None, filename=None):
 
         if models is None:
             models = self._models
@@ -483,15 +480,15 @@ class MarketModels:
                 logging.error(e)
         return False
 
-    def load_models(self, filename=None, models: dict=None):
+    def load_models(self, filename=None, models: dict = None):
         if filename is None:
-            filename = self._filename
+            filename = self.filename
         if models is None:
             try:
                 with open(filename, 'rb') as file:
                     models = pickle.load(file)
             except (FileNotFoundError, EOFError, AttributeError) as e:
-                logging.error(f' Unable to read models from file {filename} due to {e}.')
+                logging.error(f' Unable to read models due to {e}.')
                 return {}
         return models
 
@@ -499,9 +496,11 @@ class MarketModels:
         if models is None:
             models = self._models.copy()
             fitted_model = (lambda model: model.fitted_pipeline_ if isinstance(model,
-                (tpot.TPOTRegressor, tpot.TPOTClassifier)) and hasattr(model,
-                'fitted_pipeline_') else model)
-            models = {k: {k1: v if k1 != 'model' else fitted_model(k1)} for k, md in models.items() for k1,v in md.items()}
+                                                                               (tpot.TPOTRegressor,
+                                                                               tpot.TPOTClassifier)) and hasattr(model,
+                                                                                                                 'fitted_pipeline_') else model)
+            models = {k: {k1: v if k1 != 'model' else fitted_model(k1)} for k, md in models.items() for k1, v in
+            md.items()}
 
         if model_name is None:
             model_name = self._last_model_name
@@ -586,7 +585,7 @@ class MarketModels:
             kwargs['y'] = y
             return trim_run(getattr(self.model, method_name), kwargs)
 
-    def activate(self, model_name:str =None):
+    def activate(self, model_name: str = None):
         if model_name is None:
             logging.error(' Model name must be specified')
         elif model_name in self.models.keys():
@@ -599,6 +598,7 @@ class MarketModels:
 
     def test_features_relevance(self, df, model_name=None, model=None, features=None, normalize=True,
                                 method=DEFAULT_IMP_METHOD, target=None, exclude=None, positive_only=True):
+        x, y = [], []
         if model is None:
             if model_name is not None:
                 self.activate(model_name)
@@ -625,7 +625,9 @@ class MarketModels:
             elif hasattr(estimator, 'feature_importances_'):
                 importance = estimator.feature_importances_
             else:
-                logging.error(' Final estimator for specified model has neither "coef_" nor "feature_importances_" attributes, choose another test method.')
+                logging.error(
+                    ' Final estimator for specified model has neither "coef_" nor "feature_importances_" attributes, '
+                    'choose another test method.')
                 return
             features_df = pd.Series(dict(zip(features, abs(importance)))).sort_values(ascending=False)
         else:
@@ -648,7 +650,7 @@ class MarketModels:
                     results = permutation_importance(model, x, y, scoring=scoring)
                     importance = results.importances_mean
                 except ValueError:
-                    importance = pd.Series([np.nan]*len(features))
+                    importance = pd.Series([np.nan] * len(features))
                 features_df = pd.Series(dict(zip(features, abs(importance))))
             elif method == 'residual':
                 for row_index, row_feats in enumerate(tqdm(x)):
@@ -661,6 +663,7 @@ class MarketModels:
                         features_relevance.update({index: abs(new_prediction - baseline_prediction)[0]})
                     features_df = features_df.append(dict(zip(features_df.columns, features_relevance.values())),
                                                      ignore_index=True)
+                # noinspection PyArgumentList
                 features_df = features_df.sum()
             elif method == 'score':
                 baseline_score = model.score(x, y)
@@ -678,11 +681,10 @@ class MarketModels:
         if normalize:
             min_max_scaler = MinMaxScaler()
             features_df = pd.Series((
-                            min_max_scaler.fit_transform(
-                            (lambda values: values.reshape([len(values), 1]))
-                            (features_df.values))*100).flatten(),
-                            features_df.keys()
+                                            min_max_scaler.fit_transform(
+                                                    (lambda values: values.reshape([len(values), 1]))
+                                                    (features_df.values)) * 100).flatten(),
+                                    features_df.keys()
                                     )
         features_df = features_df.sort_values(ascending=False)
         return features_df
-

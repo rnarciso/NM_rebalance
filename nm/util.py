@@ -27,7 +27,7 @@ def truncate(number: float, step) -> str:
         digits = int(-math.log10(step))
     else:
         return str(number)
-    return f'%.{digits}f' % (int(number*10**digits)/10**digits)
+    return f'%.{digits}f' % (int(number * 10 ** digits) / 10 ** digits)
 
 
 # noinspection PyBroadException
@@ -84,7 +84,7 @@ def readable_kline(klines):
     columns = ['Open time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close time', 'Quote asset volume',
                'Number of trades', 'Taker buy base asset volume', 'Taker buy quote asset volume', 'Ignore']
     kline.columns = columns
-    kline['Open time'] = pd.to_datetime(kline['Open time'] * 10**6)
+    kline['Open time'] = pd.to_datetime(kline['Open time'] * 10 ** 6)
     return kline
 
 
@@ -98,3 +98,23 @@ def tz_remove_and_normalize(date):
         return tz_remove_and_normalize('now')
 
 
+def trim_run(method, *args, **kwargs):
+    if len(args) >= 1 and isinstance(args[0], dict):
+        kwargs.update(args[0])
+        args = args[1:]
+    elif len(kwargs) < 1:
+        return method(*args)
+    kwargs = {k.lower(): v for k, v in kwargs.items()}
+    try:
+        if hasattr(method, '__wrapped__'):
+            method_params = method.__wrapped__.__code__
+        else:
+            method_params = method.__code__
+        method_params = method_params.co_varnames[:method_params.co_argcount]
+    except AttributeError:
+        logging.error(f' Unable to retrieve arguments from function {method}.')
+        method_params = ()
+
+    kwargs = {k: kwargs.get(k.lower()) for k in method_params if k.lower() in kwargs.keys()}
+
+    return method(*args, **kwargs)

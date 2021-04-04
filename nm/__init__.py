@@ -1,5 +1,7 @@
+import ta
 import json
 import logging
+import warnings
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -10,7 +12,6 @@ from collections.abc import Collection
 from itertools import permutations, combinations
 # noinspection PyPackageRequirements
 from binance.exceptions import BinanceAPIException
-from pandas.core.indexing import IndexingError
 from nm.util import math, downgrade_pickle, next_date, readable_kline, safe_save, sum_dict_values, truncate, \
     tz_remove_and_normalize
 
@@ -25,6 +26,8 @@ MINIMUM_TIME_OFFSET = 2000
 NM_COLUMNS = ['symbol', 'price', 'NM1', 'NM2', 'NM3', 'NM4', 'date']
 NM_MAX = 4
 NM_TIME_ZONE = 'Brazil/East'
+NM2_RANGE = 17
+NM4_RANGE = 20
 NM_REPORT_DEFAULT_URL = 'http://127.0.0.1/nmREPORT.asp?NM='
 NMDATA_FILE = 'nm_index.dat'
 ORDER_AMOUNT_REDUCING_FACTOR = 5 / 100
@@ -40,6 +43,11 @@ YIELD_FILE = 'yield.dat'
 # Following constants are imported from Client later on
 SIDE_SELL, SIDE_BUY, TIME_IN_FORCE_GTC, ORDER_STATUS_FILLED, ORDER_TYPE_LIMIT, ORDER_TYPE_LIMIT_MAKER, \
     ORDER_TYPE_MARKET = [None]*7
+# import constants from Client
+for const in globals().copy().keys():
+    if globals()[const] is None and Client.__dict__.get(const) is not None:
+        globals()[const] = Client.__dict__[const]
+tqdm.pandas()
 
 
 def adjust(from_date, to_date, default_date=None):
@@ -67,6 +75,12 @@ def adjust(from_date, to_date, default_date=None):
         from_date = tz_remove_and_normalize(from_date)
         to_date = tz_remove_and_normalize(to_date)
     return from_date, to_date
+
+
+def convert(nmdf):
+    nmdf[nmdf.columns[0]] = pd.to_datetime(nmdf[nmdf.columns[0]], dayfirst=True)
+    nmdf[nmdf.columns[1]] = pd.to_numeric(nmdf[nmdf.columns[1]].str.replace('%', '').str.replace(',', '.'))
+    return nmdf.rename({nmdf.columns[0]: 'date', nmdf.columns[1]: 'yield'}, axis='columns').set_index('date')
 
 
 class Portfolio:
@@ -711,13 +725,6 @@ class Deposits:
 
 class CoinData:
     def __init__(self, datafile=None, load=False):
-        if datafile is None:
-            try:
-                # noinspection PyPep8Naming,PyShadowingNames
-                from config import coin_file as COIN_HISTORY_FILE
-            except (ImportError, ModuleNotFoundError):
-                global COIN_HISTORY_FILE
-            datafile = COIN_HISTORY_FILE
         self._assets = None
         self._binance_api = None
         self._filename = datafile
@@ -746,7 +753,12 @@ class CoinData:
     @property
     def filename(self):
         if self._filename is None:
-            self._filename = self.default_data_filename()
+            try:
+                # noinspection PyPep8Naming,PyShadowingNames
+                from config import coin_file as COIN_HISTORY_FILE
+            except (ImportError, ModuleNotFoundError):
+                global COIN_HISTORY_FILE
+            self._filename = COIN_HISTORY_FILE
         return self._filename
 
     def get(self, coin, from_date=None, to_date=None):
@@ -771,7 +783,8 @@ class CoinData:
 
     # noinspection PyUnboundLocalVariable
     def load(self, datafile=None):
-        datafile = self.default_data_filename(datafile)
+        if datafile is None:
+            datafile = self.filename
         try:
             return pd.read_pickle(datafile)
         except FileNotFoundError:
@@ -781,20 +794,6 @@ class CoinData:
             return self.load(datafile)
         except Exception as e:
             logging.error(e)
-
-    def default_data_filename(self, datafile=None):
-        if datafile is None:
-            if self.filename is None:
-                try:
-                    # noinspection PyPep8Naming,PyShadowingNames
-                    from config import coin_file as COIN_HISTORY_FILE
-                except (ImportError, ModuleNotFoundError):
-                    global COIN_HISTORY_FILE
-                datafile = COIN_HISTORY_FILE
-                self._filename = datafile
-            else:
-                datafile = self._filename
-        return datafile
 
     def reset(self, confirm=False):
         self.history = pd.DataFrame()
@@ -860,30 +859,53 @@ class CoinData:
         df = self.get(coin, from_date, to_date)
         return df.iloc[-1]['Close']/df.iloc[0]['Close'] - 1
 
-    def yield_for_coins(self, coins, from_date=None, to_date=None):
+    def yield_for_coins(self, coins, from_date=None, to_date=None, return_df=False):
+        if to_date is None:
+            to_date = from_date
         if to_date is not None and pd.Timestamp(to_date) > self.history.index.max():
             self.update(coins)
         df = pd.DataFrame()
         for coin in coins:
-            df.loc[coin, 'yield'] = self.yield_for_coin(coin, from_date, to_date)
+            df.loc[coin, 'yield'] = self.yield_for_coin(coin, next_date(from_date, -1), to_date)
             df.loc[coin, 'from'] = pd.Timestamp(from_date)
             df.loc[coin, 'to'] = pd.Timestamp(to_date) if to_date is not None else to_date
-        return df
+        if return_df:
+            return df
+        else:
+            return df['yield'].mean()
 
     def daily_returns(self, coin):
         return self.history_for(coin)['Close'] / self.history_for(coin)['Open'] - 1
 
     def sharpe(self, coin, days_range=30, from_date=None, risk_free_ratio=6/100):
         df = pd.DataFrame(self.daily_returns(coin) * 100, columns=['returns'])[from_date:]
-        annualized = np.sqrt(252)
-        df['SharpeRatio'] = df.returns.rolling(days_range).apply(lambda x: (x.mean() - risk_free_ratio)
-                                                                 / x.std() * annualized, raw=True)
+        annualized = np.sqrt(365)
+        df['sharpe'] = df.returns.rolling(days_range).apply(lambda x: (x.mean() - risk_free_ratio) / x.std() *
+                                                            annualized, raw=True)
         df.fillna(0, inplace=True)
+        return df['sharpe']
+
+    def ta(self, coin, from_date=None, risk_free_ratio=6/100, days_range=10):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            df = ta.add_all_ta_features(
+                    self.history_for(coin)[from_date:], open="Open", high="High", low="Low", close="Close",
+                    volume='Taker buy base asset volume', fillna=True)
+            annualized = np.sqrt(365)
+            df['sharpe'] = df.others_dr.rolling(days_range).apply(lambda x: (x.mean() - risk_free_ratio)
+                                                                 / x.std() * annualized, raw=True).fillna(0)
         return df
 
-    def momentum(self, coin, days_range=30, from_date=None):
-        df = self.history_for(coin)
-        return df
+    def yield_for_date(self, date, yield_for_date=0):
+        coin_yields_for_date = self.history[next_date(date, -1):date]
+        coin_yields_for_date = coin_yields_for_date.reset_index().sort_values(['Asset', 'Open time'])
+        coin_yields_for_date['Open'] = coin_yields_for_date['Close'].shift(1)
+        coin_yields_for_date = coin_yields_for_date[coin_yields_for_date.set_index('Open time').index == date]
+        coin_yields_for_date['yield'] = (coin_yields_for_date['Close'] / coin_yields_for_date['Open'] - 1) * 100
+        coin_yields_for_date['diff'] = abs(coin_yields_for_date['yield'] - yield_for_date)
+        coin_yields_for_date = coin_yields_for_date.sort_values('diff')
+        coin_yields_for_date = coin_yields_for_date.set_index('Asset')['yield']
+        return coin_yields_for_date
 
 
 class Backtest:
@@ -1044,25 +1066,53 @@ class Backtest:
     #     return self.daily_yield
 
     def index_yield_for_date(self, nm_index, date, top_n=4):
-        return self.coin_data.yield_for_coins(self.advisor.get(nm_index, next_date(date, 1))[:top_n].index,
-                               date, next_date(date, 1))['yield'].mean()
+        try:
+            return self.coin_data.yield_for_coins(self.advisor.get(nm_index, date)[:top_n].index,
+                                                  next_date(date, -1), date)['yield'].mean()
+        except KeyError:
+            return 0
 
-    def nm_index_yield_for_period(self, nm_index, from_date, to_date=None, top_n=4, fees=False, slippage=None):
-        coin_data = self.coin_data
+    def nm_index_yield_for_period(self, nm_index, from_date, to_date=None, top_n=4, fees=False, slippage=None,
+                                  interval=1, return_df=False):
+        from_date = tz_remove_and_normalize(from_date)
         if to_date is None:
-            to_date = from_date
+            to_date = tz_remove_and_normalize(pd.Timestamp.now('utc'))
         elif isinstance(to_date, int):
             to_date = next_date(from_date, to_date)
-        coins = self.advisor.get(nm_index, from_date)[:top_n].index
-        gross_yield = coin_data.yield_for_coins(coins, from_date, to_date)['yield'].mean()
-        liquid_yield = np.average(gross_yield)
+        accrued_yield = 0
+        if return_df:
+            df = pd.DataFrame()
         if fees:
-            fees = self.binance_api.fees.reset_index()
-            fees = fees[fees.symbol.isin([f'{c}{QUOTE_ASSET}' for c in coins])]
-            liquid_yield *= (1 - np.average(fees.taker) * 2)
-        if slippage is not None:
-            liquid_yield *= (1 - slippage)
-        return liquid_yield
+            fee_database = self.binance_api.fees.reset_index()
+        for date in tqdm(pd.date_range(from_date, to_date, freq=f'{interval}D')):
+            try:
+                coins = self.advisor.get(nm_index, date).index[:top_n]
+                yield_for_period = self.coin_data.yield_for_coins(coins, date)
+            except KeyError:
+                yield_for_period = 0
+                coins = []
+            if fees:
+                try:
+                    # noinspection PyUnresolvedReferences
+                    fee_for_date = fee_database[
+                        fee_database.symbol.isin([f'{c}{QUOTE_ASSET}' for c in set(coins).difference(last_coins)])]
+                except NameError:
+                    fee_for_date = fee_database[fee_database.symbol.isin([f'{c}{QUOTE_ASSET}' for c in coins])]
+                fee_for_date = np.average(fee_database.taker) * 2 if date > from_date else 1
+                if slippage is not None:
+                    fee_for_date *= (1 + slippage)
+                yield_for_period *= (1 - fee_for_date)
+                last_coins = coins
+
+            accrued_yield += yield_for_period
+            if return_df:
+                df.loc[date, f'NM index {nm_index} /{interval}D'] = yield_for_period
+                df.loc[date, f'NM index {nm_index} ACUM.'] = accrued_yield
+
+        if return_df:
+            return df
+        else:
+            return accrued_yield
 
     def account_yield_for_period(self, accounts, from_date, *kwargs):
         if isinstance(accounts, dict):
@@ -1279,31 +1329,76 @@ class NMData:
         def find_nm(row):
             date = row.name
             yield_for_date = row['yield']
-            coin_yields_for_date = self.coins.history[date:date]
-            coin_yields_for_date = coin_yields_for_date.reset_index()
-            coin_yields_for_date['yield'] = coin_yields_for_date['Close'] / coin_yields_for_date['Open'] - 1
-            coin_yields_for_date = coin_yields_for_date.set_index('Asset')['yield']
-            coin_yields_for_date.loc['yield marker'] = yield_for_date
-            coin_yields_for_date = coin_yields_for_date.sort_values()
-            split = coin_yields_for_date.index.to_list().index('yield marker')
-            coin_yields_for_date = pd.concat([coin_yields_for_date.iloc[split+1:], coin_yields_for_date.iloc[:split-1].sort_values(ascending=False)])
-            required_coins = list(set(self.get(nm_index, next_date(date, -1)).index[
-                                  :top_n]).intersection(self.get(nm_index, next_date(date, 1)).index[:top_n]))[:3]
-            other_coins = coin_yields_for_date.index.unique().difference(required_coins)
-            for combination in tqdm(set(combinations(other_coins, top_n-len(required_coins)))):
-                if len(required_coins):
-                    combination = set(required_coins).union(combination)
-                combined_yield = np.average([y for c, y in coin_yields_for_date.items() if c in combination])
-                if abs(combined_yield/yield_for_date - 1) <= acceptable_error:
-                    return combination
+            coin_yields_for_date = self.coins.yield_for_date(date, yield_for_date)
+            list_n = top_n - 1
+            valid_combinations = []
+            while list_n > 0:
+                coins = self.get(nm_index, next_date(date)).index
+                if len(coins) < 1:
+                    coins = discovered_nm.get(next_date(date), [])
+                for required_coins in combinations(coins, list_n):
+                    required_coins_yield = np.average([y for c, y in coin_yields_for_date.items()
+                                                      if c in required_coins])
+                    other_coins = coin_yields_for_date.index.unique().difference(required_coins)
+                    min_yield = (top_n - list_n) * np.min([y for c, y in coin_yields_for_date.items()
+                                                          if c in other_coins])
+                    min_yield = (required_coins_yield*len(required_coins) + min_yield) / top_n
+                    max_yield = (top_n - list_n) * np.max([y for c, y in coin_yields_for_date.items()
+                                                          if c in other_coins])
+                    max_yield = (required_coins_yield * len(required_coins) + max_yield) / top_n
+                    if max_yield >= yield_for_date >= min_yield:
+                        coin_yields_for_date = self.coins.yield_for_date(date, (yield_for_date * top_n -
+                                                                         required_coins_yield * list_n) /
+                                                                         (top_n - list_n))
+                        # min_yield = ((yield_for_date*top_n - required_coins_yield * list_n ) * (1 + acceptable_error)
+                        #              ) / (top_n - list_n)
+                        # max_yield = ((yield_for_date * top_n - required_coins_yield * list_n) * (1 + acceptable_error)
+                        #              ) * (top_n - list_n)
+                        # if min_yield > max_yield:
+                        #     tmp_yield = max_yield
+                        #     max_yield = min_yield
+                        #     min_yield = tmp_yield
+                        # other_coins = coin_yields_for_date[coin_yields_for_date.index.isin(other_coins) & (
+                        #               coin_yields_for_date >= min_yield) & (coin_yields_for_date <= max_yield)].index
+                        for coins in set(combinations(other_coins, top_n - list_n)):
+                            coins = set(required_coins).union(coins)
+                            combined_yield = np.average([y for c, y in coin_yields_for_date.items() if c in coins])
+                            if abs(combined_yield / yield_for_date - 1) <= acceptable_error:
+                                logging.info(
+                            f'{coins}, match: {np.average([y for c, y in coin_yields_for_date.items() if c in coins])}')
+                                discovered_nm[date] = coins
+                                valid_combinations.append(coins)
+                        else:
+                            if len(valid_combinations) > 0:
+                                list_n = 0
+                                break
+                list_n -= 1
 
-        if 'date' in nm_to_find.columns and nm_to_find['date'].dtype == np.dtype('object'):
-            nm_to_find['date'] = nm_to_find['date'].apply(pd.Timestamp)
-        if 'yield' in nm_to_find.columns and nm_to_find['yield'].dtype == np.dtype('object'):
-            nm_to_find['yield'] = nm_to_find['yield'].str.replace('%', '')
-            nm_to_find['yield'] = nm_to_find['yield'].apply(pd.to_numeric)
-        nm_to_find[f'suggested NM{nm_index}'] = nm_to_find.apply(find_nm, axis=1)
+            return valid_combinations
+
+
+        nm_to_find = convert(nm_to_find).sort_index(ascending=False)
+        discovered_nm = {}
+        nm_to_find[f'suggested NM{nm_index}'] = nm_to_find.progress_apply(find_nm, axis=1)
         return nm_to_find
+
+    def find_best_sharpe_range(self, nm_index, date, max_days=21):
+        coin_list = self.get(nm_index, date).index
+        nm_index_for_date = self.get(nm_index, date)[f'NM{nm_index}'].to_dict()
+        test = pd.DataFrame()
+        for day in tqdm(range(2, max_days)):
+            for coin in coin_list:
+                test.loc[coin, f'sharpe {day} days'] = self.coins.sharpe(coin, days_range=day, from_date=pd.Timestamp(date) - pd.Timedelta(day + 1, 'days'))[:date].iloc[-1]
+        for column in test.columns:
+            test.loc['matchs', column] = sum([1 if test.index.values[i] == coin else 0 for i, coin in
+                                             enumerate(test[column].sort_values(ascending=False).index)])
+            test.loc['rms', column] = np.average([abs(test[column].get(coin, 0) - nm_index_for_date.get(coin, 0)
+                                                      ) for coin in test.index.values if coin in coin_list])
+
+        # if len(test) > 1:
+        #     print(f'Best match: {test.T.matchs.sort_values(ascending=False).index[0]}.')
+
+        return test.T.rms.sort_values()
 
 
 class Statement:
@@ -1403,9 +1498,3 @@ class Statement:
         dusts['orderListId'] = -1
         transactions = pd.concat([transactions, dusts[transactions.columns]]).set_index('time').sort_index()
         self.transactions = self.transactions.append(transactions)
-
-
-# import constants from Client
-for const in globals().copy().keys():
-    if globals()[const] is None and Client.__dict__.get(const) is not None:
-        globals()[const] = Client.__dict__[const]
