@@ -808,7 +808,10 @@ class CoinData:
             to_date = next_date(from_date)
         symbols = [i.get('symbol') for i in self.binance_api.get_all_tickers()]
         for asset in tqdm(assets):
-            old_data = self.history_for(asset)
+            try:
+                old_data = self.history_for(asset)
+            except KeyError:
+                old_data = pd.DataFrame()
             last_date = old_data.index.max() if old_data.index.max() > from_date else from_date
             symbol = f'{asset}{QUOTE_ASSET}'
             if symbol not in symbols:
