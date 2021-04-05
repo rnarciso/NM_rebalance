@@ -30,11 +30,12 @@ def truncate(number: float, step) -> str:
     return f'%.{digits}f' % (int(number * 10 ** digits) / 10 ** digits)
 
 
-# noinspection PyBroadException
+
 def is_serializable(obj):
     try:
         pickle.loads(pickle.dumps(obj))
         return True
+    # noinspection PyBroadException
     except:
         return False
 

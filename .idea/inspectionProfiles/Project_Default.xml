@@ -550,6 +550,7 @@
       <option name="ignoredIdentifiers">
         <list>
           <option value="bool.append" />
+          <option value="deap.creator.FitnessMulti" />
         </list>
       </option>
     </inspection_tool>

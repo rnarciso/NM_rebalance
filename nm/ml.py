@@ -145,11 +145,11 @@ def rebuild_me(self):
             self.operators.append(op_class)
             self.arguments += arg_types
     self.operators_context = {
-        "make_pipeline"      : make_pipeline,
-        "make_union"         : make_union,
-        "StackingEstimator"  : StackingEstimator,
+        "make_pipeline": make_pipeline,
+        "make_union": make_union,
+        "StackingEstimator": StackingEstimator,
         "FunctionTransformer": FunctionTransformer,
-        "copy"               : copy,
+        "copy": copy,
         }
     setattr(self, '_pareto_front', tools.ParetoFront(similar=lambda ind1, ind2: np.allclose(
             ind1.fitness.values, ind2.fitness.values)))
@@ -168,14 +168,14 @@ def rebuild_me(self):
     #             )
     if hasattr(self, 'pareto_front_fitted_pipelines_') and isinstance(self.pareto_front_fitted_pipelines_, dict):
         items = [creator.Individual(PrimitiveTree([]).from_string(i, self._pset)) for i in
-            self.pareto_front_fitted_pipelines_.keys()]
+                 self.pareto_front_fitted_pipelines_.keys()]
         keys = [(lambda d: creator.FitnessMulti((d.get('operator_count', 0), d.get('internal_cv_score', 0))))(
                 self.evaluated_individuals_.get(k, {})) for k in self.pareto_front_fitted_pipelines_.keys()]
     elif hasattr(self, 'evaluated_individuals_') and isinstance(self.evaluated_individuals_, dict):
         items = [creator.Individual(PrimitiveTree([]).from_string(i, self._pset)) for i in
-            self.evaluated_individuals_.keys()]
+                 self.evaluated_individuals_.keys()]
         keys = [creator.FitnessMulti((d.get('operator_count', 0), d.get('internal_cv_score', 0))) for d in
-            self.evaluated_individuals_.values()]
+                self.evaluated_individuals_.values()]
     else:
         self.warm_start = False
         self.verbosity = 3
@@ -188,7 +188,7 @@ def rebuild_me(self):
                 PrimitiveTree([]).from_string(self._optimized_pipeline, self._pset))
         optimized_pipeline.__str__ = partial(PrimitiveTree.__str__, optimized_pipeline)
         keys = [creator.FitnessMulti((d.get('operator_count', 0), d.get('internal_cv_score', 0))) for k, d in
-            self.evaluated_individuals_.items() if k == optimized_pipeline.__str__()]
+                self.evaluated_individuals_.items() if k == optimized_pipeline.__str__()]
         if len(keys) > 0:
             optimized_pipeline.fitness = keys[0]
         else:
@@ -208,14 +208,15 @@ def rebuild_me(self):
 
     if not hasattr(self, 'evaluated_individuals_'):
         setattr(self, 'evaluated_individuals_', {p.__str__(): (
-            lambda v: {'generation': last_gen, 'mutation_count': 0, 'crossover_count': 0, 'predecessor': ('ROOT',),
-                'operator_count'   : v[0], 'internal_cv_score': v[-1]})(self._pareto_front.keys[i].values) for i, p in
-            enumerate(self._pareto_front.items)})
+                lambda v: {'generation': last_gen, 'mutation_count': 0, 'crossover_count': 0, 'predecessor': ('ROOT',),
+                           'operator_count': v[0], 'internal_cv_score': v[-1]})(self._pareto_front.keys[i].values)
+                           for i, p in enumerate(self._pareto_front.items)})
 
     self.verbosity = 3
     return self
 
 
+# noinspection PyTypeChecker
 class MarketModels:
 
     def __init__(self, filename=None, load=True):
@@ -304,7 +305,7 @@ class MarketModels:
         return targets if self.last_model is None else targets.get(self._last_model_name)
 
     @staticmethod
-    def trim_XY(x, y=None):
+    def trim_xy(x, y=None):
         max_value = x[x < np.inf].max()
         min_value = x[x > -np.inf].min()
         x[x == np.inf] = max_value
@@ -355,14 +356,14 @@ class MarketModels:
         return regression
 
     def model_train(self, X, Y, regression=None, max_time_mins=5 * 60, max_eval_time_mins=1, early_stop=5,
-                    config_dict=TPOT_DEFAULT_CONFIG_DICT):
+                    config_dict=TPOT_DEFAULT_CONFIG_DICT, n_jobs=-1):
 
         params = dict(max_time_mins=max_time_mins,
                       max_eval_time_mins=max_eval_time_mins,
                       early_stop=early_stop,
                       random_state=RANDOM_STATE,
                       verbosity=3,
-                      n_jobs=-1,
+                      n_jobs=n_jobs,
                       config_dict=config_dict)
         regression = self.model_type(Y, regression)
         if regression:
@@ -388,7 +389,7 @@ class MarketModels:
                     else:
                         correlation = df.corr(method='pearson')
                     features = [c for c in correlation.nlargest(int(n_features) + 1, target).index
-                        if c != target]
+                                if c != target]
             else:
                 features = self.valid_as_features_columns(df, target, exclude)
         elif not isinstance(features, Iterable):
@@ -446,7 +447,7 @@ class MarketModels:
         else:
             x, y = x_test, y_test
         if trimXY:
-            return self.trim_XY(x, y)
+            return self.trim_xy(x, y)
         else:
             return x, y
 
@@ -460,7 +461,7 @@ class MarketModels:
                                    test_size=test_size, random_state=random_state, train=True)
         regression = self.model_type(y, regression)
         model_dict = self._models
-        model_dict[model_name] = {'model': self.model_train(*self.trim_XY(x, y), *args, regression=regression,
+        model_dict[model_name] = {'model': self.model_train(*self.trim_xy(x, y), *args, regression=regression,
                                                             **kwargs),
                                   'features': features,
                                   'target': target}
@@ -502,9 +503,9 @@ class MarketModels:
         if models is None:
             models = self._models.copy()
             fitted_model = (lambda model: model.fitted_pipeline_ if isinstance(model,
-                            (Regressor, Classifier)) and hasattr(model,'fitted_pipeline_') else model)
+                            (Regressor, Classifier)) and hasattr(model, 'fitted_pipeline_') else model)
             models = {k: {k1: v if k1 != 'model' else fitted_model(k1)} for k, md in models.items() for k1, v in
-            md.items()}
+                      md.items()}
 
         if model_name is None:
             model_name = self._last_model_name
@@ -512,6 +513,7 @@ class MarketModels:
             self._last_model_name = model_name
         return model_name, models
 
+    # noinspection PyTypeChecker
     def apply_mode(self, df, model_name=None, method_name=None,
                    trimXY=True, exclude=(), target=None, features=None, n_features=None,
                    **kwargs):
@@ -564,6 +566,7 @@ class MarketModels:
             except KeyError:
                 y = np.array([])
         elif isinstance(df, Iterable):
+            # noinspection PyTypeChecker
             if hasattr(df, 'shape'):
                 x = df
                 if hasattr(model_name, 'shape'):
@@ -583,7 +586,7 @@ class MarketModels:
                 if isinstance(model_name, numbers.Number):
                     y = [model_name]
         if trimXY:
-            x, y = self.trim_XY(x, y)
+            x, y = self.trim_xy(x, y)
         if hasattr(self.model, method_name):
             kwargs['x'] = x
             kwargs['y'] = y
@@ -618,7 +621,7 @@ class MarketModels:
         features_df = pd.DataFrame(columns=features)
         if method == 'all':
             return pd.DataFrame.from_dict({m: self.test_features_relevance(df, method=m) for m in
-                                              ('coef', 'permutation', 'score', 'residual')})
+                                          ('coef', 'permutation', 'score', 'residual')})
         if method == 'coef':
             if hasattr(model, '_final_estimator'):
                 estimator = model._final_estimator
@@ -638,9 +641,9 @@ class MarketModels:
             x = df[features].applymap(partial(pd.to_numeric, errors='coerce')).values
             if method in ('permutation', 'score'):
                 y = df[target].apply(partial(pd.to_numeric, errors='coerce')).values
-                x, y = self.trim_XY(x, y)
+                x, y = self.trim_xy(x, y)
             else:
-                x = self.trim_XY(x)
+                x = self.trim_xy(x)
             if method == 'permutation':
                 if hasattr(model, '_final_estimator'):
                     estimator = model._final_estimator

@@ -899,8 +899,8 @@ class CoinData:
                     self.history_for(coin)[from_date:], open="Open", high="High", low="Low", close="Close",
                     volume='Taker buy base asset volume', fillna=True)
             annualized = np.sqrt(365)
-            df['sharpe'] = df.others_dr.rolling(days_range).apply(lambda x: (x.mean() - risk_free_ratio)
-                                                                 / x.std() * annualized, raw=True).fillna(0)
+            df['sharpe'] = df.others_dr.rolling(days_range).apply(lambda x: (x.mean() - risk_free_ratio) /
+                                                x.std() * annualized, raw=True).fillna(0)
         return df
 
     def yield_for_date(self, date, yield_for_date=0):
@@ -943,135 +943,6 @@ class Backtest:
             self._coin_data = CoinData()
         return self._coin_data
 
-    # # noinspection PyUnboundLocalVariable
-    # def load(self, datafile=None):
-    #     if datafile is None:
-    #         try:
-    #             # noinspection PyPep8Naming,PyShadowingNames
-    #             from config import yield_file as YIELD_FILE
-    #         except (ImportError, ModuleNotFoundError):
-    #             datafile = YIELD_FILE
-    #     try:
-    #         return pd.read_pickle(datafile)
-    #     except FileNotFoundError:
-    #         return pd.DataFrame()
-    #     except ValueError:
-    #         downgrade_pickle(datafile)
-    #         return self.load(datafile)
-    #     except Exception as e:
-    #         logging.error(e)
-    #
-    # def save(self):
-    #     if self.filename is None:
-    #         try:
-    #             # noinspection PyPep8Naming,PyShadowingNames
-    #             from config import yield_file as YIELD_FILE
-    #         except (ImportError, ModuleNotFoundError):
-    #             global YIELD_FILE
-    #         # noinspection PyUnboundLocalVariable
-    #         self.filename = YIELD_FILE
-    #     safe_save(self.daily_yield, self.filename)
-
-    # def yield_report(self, from_date=None, to_date=None, accounts=None, candle=Client.KLINE_INTERVAL_1MINUTE):
-    #     if from_date is None:
-    #         from_date = pd.Timestamp('now')
-    #     if to_date is None:
-    #         to_date = next_date(from_date)
-    #     binance_api = self.binance_api
-    #     if accounts is None:
-    #         portfolios = [1, 2, 4]
-    #         top_n = {1: 4, 2: 4, 4: 4}
-    #     else:
-    #         portfolios = [v for d in accounts for k, v in d.items() if k == 'index']
-    #         top_n = {portfolios[i]: d.get('top_n') for i, d in enumerate(accounts)}
-    #     date_range = pd.date_range(from_date, to_date)
-    #     nm_yield = pd.DataFrame()
-    #     for i, from_date in enumerate(tqdm(date_range, desc='Retrieving NM yield for specified dates')):
-    #         if from_date == date_range[-1]:
-    #             continue
-    #         nm_for_date = pd.DataFrame()
-    #         coin_data = pd.DataFrame()
-    #         for nm_index in portfolios:
-    #             try:
-    #                 nm_coins = self.advisor.get(nm_index, from_date)[:top_n.get(nm_index)]
-    #             except KeyError:
-    #                 continue
-    #             prices = nm_coins.to_dict().get('price')
-    #             nm_coins = nm_coins.index.values
-    #             for coin in nm_coins:
-    #                 if coin not in nm_for_date.columns:
-    #                     symbol = f'{coin}{QUOTE_ASSET}'
-    #                     coin_data = pd.DataFrame()
-    #                     retries = 3
-    #                     while len(coin_data) < 1440 and retries > 0:
-    #                         try:
-    #                             coin_data = binance_api.get_historical_klines(symbol, candle, from_date.strftime(
-    #                                                                           '%Y-%m-%d'), date_range[i + 1].strftime(
-    #                                                                           '%Y-%m-%d'))
-    #                         except Exception as e:
-    #                             logging.error(e)
-    #                             pass
-    #                         retries -= 1
-    #                     coin_data = readable_kline(coin_data)
-    #                     nm_for_date[coin] = (coin_data['Close'] / prices[coin] - 1)*100
-    #
-    #             nm_for_date[f'NM{nm_index}'] = nm_for_date.apply(lambda row: np.average([v for k, v in row.items()
-    #                                                              if k in nm_coins]), axis=1)
-    #         try:
-    #             nm_for_date['time'] = coin_data['Open time']
-    #         except KeyError:
-    #             continue
-    #         features_for_date = nm_for_date[nm_for_date['time'] < date_range[i+1]].iloc[-1]
-    #         for nm_index in portfolios:
-    #             features_for_date[f'NM{nm_index} top'] = nm_for_date[f'NM{nm_index}'].max()
-    #             features_for_date[f'NM{nm_index} bottom'] = nm_for_date[f'NM{nm_index}'].min()
-    #             features_for_date[f'NM{nm_index} top time'] = nm_for_date[
-    #                               nm_for_date[f'NM{nm_index}'] == nm_for_date[f'NM{nm_index}'].max()]['time'].values[0]
-    #             features_for_date[f'NM{nm_index} bottom time'] = nm_for_date[
-    #                               nm_for_date[f'NM{nm_index}'] == nm_for_date[f'NM{nm_index}'].min()]['time'].values[0]
-    #         nm_yield = nm_yield.append(features_for_date, ignore_index=True)
-    #     these_first = [column for column in self.yield_df_columns if column in nm_yield.columns]
-    #     try:
-    #         if 'time' in nm_yield.columns:
-    #             nm_yield = nm_yield[these_first + list(nm_yield.columns.difference(these_first))].set_index('time')
-    #             nm_yield.index = nm_yield.index.normalize()
-    #             nm_yield.index.name = None
-    #             return nm_yield
-    #     except Exception as e:
-    #         logging.error(e)
-    #
-    # def update_yield_data(self, to_date=None, from_date=None, top_n=4):
-    #     if from_date is None:
-    #         try:
-    #             from_date = self.daily_yield.index.max()
-    #             if pd.Timestamp(from_date) is pd.NaT or pd.Timestamp(from_date) < pd.Timestamp(SINCE):
-    #                 raise ValueError
-    #         except ValueError:
-    #             from_date = SINCE
-    #         from_date = next_date(from_date)
-    #     else:
-    #         from_date = pd.Timestamp(from_date)
-    #     if from_date.normalize() < pd.Timestamp.now('utc').normalize().tz_convert(None):
-    #         if to_date is None:
-    #             to_date = pd.Timestamp.now('utc').tz_convert(None)
-    #         elif isinstance(to_date, int):
-    #             to_date = next_date(from_date, to_date)
-    #         else:
-    #             to_date = next_date(to_date)
-    #         if to_date < from_date:
-    #             date = to_date
-    #             to_date = from_date
-    #             from_date = date
-    #         from_date = pd.Timestamp(from_date).normalize()
-    #         to_date = pd.Timestamp(to_date).normalize()
-    #         accounts = [{'index': i, 'top_n': top_n} for i in range(1, NM_MAX + 1)]
-    #         new_data = self.yield_report(from_date, to_date, accounts=accounts)
-    #         if new_data is not None:
-    #             new_data = new_data[set(self.yield_df_columns).intersection(new_data.columns)]
-    #             self.daily_yield = pd.concat([self.daily_yield, new_data])
-    #             self.save()
-    #     return self.daily_yield
-
     def index_yield_for_date(self, nm_index, date, top_n=4):
         try:
             return self.coin_data.yield_for_coins(self.advisor.get(nm_index, date)[:top_n].index,
@@ -1081,14 +952,15 @@ class Backtest:
 
     def nm_index_yield_for_period(self, nm_index, from_date, to_date=None, top_n=4, fees=False, slippage=None,
                                   interval=1, return_df=False):
+        fee_database = pd.DataFrame()
+        df = pd.DataFrame()
+        last_coins = []
         from_date = tz_remove_and_normalize(from_date)
         if to_date is None:
             to_date = tz_remove_and_normalize(pd.Timestamp.now('utc'))
         elif isinstance(to_date, int):
             to_date = next_date(from_date, to_date)
         accrued_yield = 0
-        if return_df:
-            df = pd.DataFrame()
         if fees:
             fee_database = self.binance_api.fees.reset_index()
         for date in tqdm(pd.date_range(from_date, to_date, freq=f'{interval}D')):
@@ -1102,7 +974,7 @@ class Backtest:
                 try:
                     # noinspection PyUnresolvedReferences
                     fee_for_date = fee_database[
-                        fee_database.symbol.isin([f'{c}{QUOTE_ASSET}' for c in set(coins).difference(last_coins)])]
+                        fee_database[SYMBOL].isin([f'{c}{QUOTE_ASSET}' for c in set(coins).difference(last_coins)])]
                 except NameError:
                     fee_for_date = fee_database[fee_database.symbol.isin([f'{c}{QUOTE_ASSET}' for c in coins])]
                 fee_for_date = np.average(fee_database.taker) * 2 if date > from_date else 1
@@ -1192,9 +1064,6 @@ class Backtest:
 
 
 class NMData:
-    @property
-    def history(self):
-        return self._history
 
     _nm_url: str
 
@@ -1383,7 +1252,6 @@ class NMData:
 
             return valid_combinations
 
-
         nm_to_find = convert(nm_to_find).sort_index(ascending=False)
         discovered_nm = {}
         nm_to_find[f'suggested NM{nm_index}'] = nm_to_find.progress_apply(find_nm, axis=1)
@@ -1395,7 +1263,9 @@ class NMData:
         test = pd.DataFrame()
         for day in tqdm(range(2, max_days)):
             for coin in coin_list:
-                test.loc[coin, f'sharpe {day} days'] = self.coins.sharpe(coin, days_range=day, from_date=pd.Timestamp(date) - pd.Timedelta(day + 1, 'days'))[:date].iloc[-1]
+                test.loc[coin, f'sharpe {day} days'] = self.coins.sharpe(coin, days_range=day,
+                                                                         from_date=pd.Timestamp(date) -
+                                                                         pd.Timedelta(day + 1, 'days'))[:date].iloc[-1]
         for column in test.columns:
             test.loc['matchs', column] = sum([1 if test.index.values[i] == coin else 0 for i, coin in
                                              enumerate(test[column].sort_values(ascending=False).index)])
@@ -1407,11 +1277,13 @@ class NMData:
 
         return test.T.rms.sort_values()
 
-    def ta_data(self, nm_index, n=None):
+    def tech_data(self, nm_index, n=None):
         return self.history[['date', 'symbol', f'NM{nm_index}']].iloc[:n].join(
             self.history[['date', 'symbol']].iloc[:n].progress_apply(
             lambda row: self.coins.ta(row['symbol'], from_date=row['date'] - pd.Timedelta(100, 'days')
-            ).asof(next_date(row['date'])), axis=1)).drop(['Asset', 'Close time'], axis='columns')
+                                      ).asof(next_date(row['date'])), axis=1)).drop(
+                                      ['Asset', 'Close time'], axis='columns')
+
 
 class Statement:
     def __init__(self, load=True, datafile=None):
