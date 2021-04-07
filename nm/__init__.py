@@ -150,8 +150,10 @@ class Portfolio:
                     else:
                         logging.error(e)
                         return
-
-        super().__getattribute__(attr)
+        if hasattr(super(), attr):
+            super().__getattribute__(attr)
+        else:
+            logging.error('Binance API object has no attribute {attr}, or is not initialized. Check configuration file!')
 
     @property
     def fees(self):
@@ -1099,7 +1101,7 @@ class NMData:
 
     @property
     def assets(self):
-        if self.history is not None and len(self.history) > 0:
+        if self.history is not None and len(self.history) > 0:154
             return self.history.symbol.unique()
         else:
             return list()
