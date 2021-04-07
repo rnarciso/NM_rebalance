@@ -4,6 +4,7 @@
     <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nm/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/util.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,15 +26,22 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="54">
+              <caret line="3" column="1" selection-start-line="3" selection-start-column="1" selection-end-line="3" selection-end-column="1" />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="259">
-              <caret line="921" column="17" lean-forward="true" selection-start-line="921" selection-start-column="17" selection-end-line="921" selection-end-column="17" />
+            <state relative-caret-position="1738">
+              <caret line="757" selection-start-line="757" selection-end-line="757" />
               <folding>
-                <element signature="e#1373#1499#0" />
-                <element signature="e#1593#1714#0" />
-                <element signature="e#1568#2551#0" />
+                <element signature="e#0#9#0" expanded="true" />
                 <element signature="e#2340#2415#0" />
                 <element signature="e#2795#3090#0" />
                 <element signature="e#3762#4084#0" />
@@ -151,8 +159,6 @@
                 <element signature="e#5405#5434#0" />
                 <element signature="e#5485#5603#0" />
                 <element signature="e#5649#5744#0" />
-                <element signature="e#5971#6142#0" />
-                <element signature="e#6185#6235#0" />
                 <element signature="e#6282#6390#0" />
                 <element signature="e#6450#6471#0" />
                 <element signature="e#6770#6835#0" />
@@ -169,7 +175,6 @@
                 <element signature="e#10393#10609#0" />
                 <element signature="e#11144#11219#0" />
                 <element signature="e#36445#36837#0" />
-                <element signature="e#37782#38766#0" />
                 <element signature="e#37528#51133#0" />
                 <element signature="e#11809#12250#0" />
                 <element signature="e#12092#12250#0" />
@@ -251,8 +256,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nm/util.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="200">
-              <caret line="40" selection-start-line="40" selection-end-line="40" />
+            <state relative-caret-position="-150">
+              <caret line="12" column="14" selection-start-line="12" selection-start-column="14" selection-end-line="12" selection-end-column="14" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
                 <element signature="e#1762#2246#1" />
@@ -311,7 +316,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>yield_repo</find>
       <find>COIN_HISTORY_FILE</find>
       <find>from_date</find>
       <find>update_single_date</find>
@@ -341,6 +345,7 @@
       <find>symbols</find>
       <find>connect</find>
       <find>update</find>
+      <find>'Asset'</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -356,11 +361,11 @@
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$USER_HOME$/Documents/PycharmProjects/NM_rebalance/nm/__init__.py" />
         <option value="$PROJECT_DIR$/rebalance.py" />
-        <option value="$PROJECT_DIR$/nm/util.py" />
         <option value="$PROJECT_DIR$/nm/ml.py" />
         <option value="$PROJECT_DIR$/nm/export_data_from_pandas.py" />
         <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/requirements.txt" />
+        <option value="$PROJECT_DIR$/nm/util.py" />
         <option value="$PROJECT_DIR$/nm/__init__.py" />
       </list>
     </option>
@@ -491,20 +496,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1616422167528</updated>
-    </task>
-    <task id="LOCAL-00007" summary="Back tester implementation in process">
-      <created>1616856983530</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1616856983530</updated>
-    </task>
-    <task id="LOCAL-00008" summary="Back tester implementation in process">
-      <created>1616861911715</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1616861911715</updated>
     </task>
     <task id="LOCAL-00009" summary="Back tester implementation in process">
       <created>1616862232932</created>
@@ -835,7 +826,21 @@
       <option name="project" value="LOCAL" />
       <updated>1617830317082</updated>
     </task>
-    <option name="localTasksCounter" value="56" />
+    <task id="LOCAL-00056" summary="ML module in implementation">
+      <created>1617831275415</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1617831275415</updated>
+    </task>
+    <task id="LOCAL-00057" summary="ML module in implementation">
+      <created>1617831963978</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1617831963979</updated>
+    </task>
+    <option name="localTasksCounter" value="58" />
     <servers />
   </component>
   <component name="TodoView">
@@ -849,16 +854,15 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="11" y="25" width="1440" height="819" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49744898" visible="true" weight="0.15665236" />
+      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49744898" weight="0.15665236" />
       <window_info id="Structure" order="2" sideWeight="0.502551" side_tool="true" weight="0.15665236" />
       <window_info anchor="bottom" id="Database Changes" order="0" show_stripe_button="false" />
       <window_info anchor="bottom" id="Terminal" order="1" sideWeight="0.4985694" weight="0.32732317" />
       <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5028612" side_tool="true" weight="0.45781466" />
       <window_info anchor="bottom" id="Version Control" order="3" weight="0.32871014" />
-      <window_info anchor="bottom" id="Python Console" order="4" sideWeight="0.49713877" weight="0.45769763" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="4" sideWeight="0.49713877" visible="true" weight="0.45769763" />
       <window_info anchor="bottom" id="Docker" order="5" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="6" />
       <window_info anchor="bottom" id="Find" order="7" weight="0.3259362" />
@@ -878,22 +882,22 @@
     </layout>
     <layout-to-restore>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.15665236" />
-      <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
+      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49744898" visible="true" weight="0.15665236" />
+      <window_info id="Structure" order="2" sideWeight="0.502551" side_tool="true" weight="0.15665236" />
       <window_info anchor="bottom" id="Database Changes" order="0" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Terminal" order="1" sideWeight="0.4985694" weight="0.32914925" />
-      <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.50214595" side_tool="true" weight="0.46164575" />
-      <window_info anchor="bottom" id="Version Control" order="3" weight="0.32914925" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="4" sideWeight="0.49785408" visible="true" weight="0.45844877" />
+      <window_info anchor="bottom" id="Terminal" order="1" sideWeight="0.4985694" weight="0.32732317" />
+      <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5028612" side_tool="true" weight="0.45781466" />
+      <window_info anchor="bottom" id="Version Control" order="3" weight="0.32871014" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="4" sideWeight="0.49713877" visible="true" weight="0.45769763" />
       <window_info anchor="bottom" id="Docker" order="5" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="6" />
-      <window_info anchor="bottom" id="Find" order="7" weight="0.32823366" />
+      <window_info anchor="bottom" id="Find" order="7" weight="0.3259362" />
       <window_info anchor="bottom" id="Run" order="8" weight="0.32956153" />
-      <window_info anchor="bottom" id="Debug" order="9" weight="0.39748955" />
+      <window_info anchor="bottom" id="Debug" order="9" sideWeight="0.4985694" weight="0.3966713" />
       <window_info anchor="bottom" id="Cvs" order="10" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="11" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="12" weight="0.32823366" />
-      <window_info anchor="bottom" id="Inspection Results" order="13" weight="0.32956153" />
+      <window_info anchor="bottom" id="Inspection Results" order="13" weight="0.32780084" />
       <window_info anchor="bottom" id="Duplicates" order="14" weight="0.32956153" />
       <window_info anchor="right" id="SciView" order="0" weight="0.64520746" />
       <window_info anchor="right" id="Database" order="1" />
@@ -925,7 +929,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/__init__.py</url>
-          <line>1289</line>
+          <line>1261</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1146,13 +1150,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="3" column="1" selection-start-line="3" selection-start-column="1" selection-end-line="3" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/config.py.example">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="216">
@@ -1244,17 +1241,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/nm/util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
-          <caret line="40" selection-start-line="40" selection-end-line="40" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-            <element signature="e#1762#2246#1" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/numpy/core/_methods.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="342">
@@ -1301,14 +1287,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="54">
+          <caret line="3" column="1" selection-start-line="3" selection-start-column="1" selection-end-line="3" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nm/util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-150">
+          <caret line="12" column="14" selection-start-line="12" selection-start-column="14" selection-end-line="12" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+            <element signature="e#1762#2246#1" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="259">
-          <caret line="921" column="17" lean-forward="true" selection-start-line="921" selection-start-column="17" selection-end-line="921" selection-end-column="17" />
+        <state relative-caret-position="1738">
+          <caret line="757" selection-start-line="757" selection-end-line="757" />
           <folding>
-            <element signature="e#1373#1499#0" />
-            <element signature="e#1593#1714#0" />
-            <element signature="e#1568#2551#0" />
+            <element signature="e#0#9#0" expanded="true" />
             <element signature="e#2340#2415#0" />
             <element signature="e#2795#3090#0" />
             <element signature="e#3762#4084#0" />
@@ -1426,8 +1428,6 @@
             <element signature="e#5405#5434#0" />
             <element signature="e#5485#5603#0" />
             <element signature="e#5649#5744#0" />
-            <element signature="e#5971#6142#0" />
-            <element signature="e#6185#6235#0" />
             <element signature="e#6282#6390#0" />
             <element signature="e#6450#6471#0" />
             <element signature="e#6770#6835#0" />
@@ -1444,7 +1444,6 @@
             <element signature="e#10393#10609#0" />
             <element signature="e#11144#11219#0" />
             <element signature="e#36445#36837#0" />
-            <element signature="e#37782#38766#0" />
             <element signature="e#37528#51133#0" />
             <element signature="e#11809#12250#0" />
             <element signature="e#12092#12250#0" />

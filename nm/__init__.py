@@ -749,13 +749,13 @@ class CoinData:
 
     def get(self, coin, from_date=None, to_date=None):
         try:
-            history = self.history[self.history['Asset'] == coin]
+            history = self.history[self.history[SYMBOL] == coin]
         except KeyError:
             return pd.DataFrame()
         return history[from_date:to_date]
 
     def history_for(self, coin):
-        return self.history[self.history['Asset'] == coin]
+        return self.history[self.history[SYMBOL] == coin]
 
     @property
     def history(self):
@@ -838,7 +838,7 @@ class CoinData:
                 assets = self.assets
         else:
             if assets is None and pd.Timestamp(date).normalize() != pd.Timestamp(self.history.index.max()).normalize():
-                assets = [a for a in set(self.assets).difference(self.history[date: date]['Asset'].unique())
+                assets = [a for a in set(self.assets).difference(self.history[date: date][SYMBOL].unique())
                           if date > self.history_for(a).index.min()]
         if len(assets) > 0:
             try:
@@ -893,15 +893,15 @@ class CoinData:
                                                 x.std() * annualized, raw=True).fillna(0)
         return df
 
-    def yield_for_date(self, date, yield_for_date=0):
+    def add_daily_yield_for_date(self, date, yield_for_date=0):
         coin_yields_for_date = self.history[next_date(date, -1):date]
-        coin_yields_for_date = coin_yields_for_date.reset_index().sort_values(['Asset', 'Open time'])
-        coin_yields_for_date['Open'] = coin_yields_for_date['Close'].shift(1)
-        coin_yields_for_date = coin_yields_for_date[coin_yields_for_date.set_index('Open time').index == date]
-        coin_yields_for_date['yield'] = (coin_yields_for_date['Close'] / coin_yields_for_date['Open'] - 1) * 100
-        coin_yields_for_date['diff'] = abs(coin_yields_for_date['yield'] - yield_for_date)
-        coin_yields_for_date = coin_yields_for_date.sort_values('diff')
-        coin_yields_for_date = coin_yields_for_date.set_index('Asset')['yield']
+        coin_yields_for_date = coin_yields_for_date.reset_index().sort_values([SYMBOL, OPEN_TIME])
+        coin_yields_for_date[OPEN] = coin_yields_for_date[CLOSE].shift(1)
+        coin_yields_for_date = coin_yields_for_date[coin_yields_for_date.set_index(OPEN_TIME).index == date]
+        coin_yields_for_date[YIELD] = (coin_yields_for_date[CLOSE] / coin_yields_for_date[OPEN] - 1) * 100
+        coin_yields_for_date[DIFF] = abs(coin_yields_for_date[YIELD] - yield_for_date)
+        coin_yields_for_date = coin_yields_for_date.sort_values(DIFF)
+        coin_yields_for_date = coin_yields_for_date.set_index(SYMBOL)[YIELD]
         return coin_yields_for_date
 
 
