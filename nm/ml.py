@@ -157,15 +157,6 @@ def rebuild_me(self):
     self._setup_pset()
     self._setup_toolbox()
     self._pop = self._toolbox.population(n=self.population_size)
-    # if not hasattr(creator, 'FitnessMulti'):
-    #     creator.create("FitnessMulti", base.Fitness, weights=(-1.0, 1.0))
-    # if not hasattr(creator, 'Individual'):
-    #     creator.create(
-    #             "Individual",
-    #             PrimitiveTree,
-    #             fitness=creator.FitnessMulti,
-    #             statistics=dict,
-    #             )
     if hasattr(self, 'pareto_front_fitted_pipelines_') and isinstance(self.pareto_front_fitted_pipelines_, dict):
         items = [creator.Individual(PrimitiveTree([]).from_string(i, self._pset)) for i in
                  self.pareto_front_fitted_pipelines_.keys()]
@@ -237,7 +228,7 @@ class MarketModels:
 
     # noinspection PyShadowingBuiltins
     def __repr__(self):
-        repr = 'BitScreener.MarketModels current models:'
+        repr = 'MarketModels current models:'
         for model_name, model_dict in self._models.items():
             model = model_dict.get("model")
             if hasattr(model, '_estimator_type'):
@@ -255,6 +246,12 @@ class MarketModels:
             else:
                 to_print += f'{model_name}: [{type(model)}]'
         return to_print
+
+    def __getitem__(self, item):
+        if item in self._models.keys():
+            self.activate(item)
+            return self._models[item].get('model')
+        raise KeyError
 
     @property
     def filename(self):
@@ -316,12 +313,12 @@ class MarketModels:
         return x if y is None else (x, y)
 
     @staticmethod
-    def valid_as_features_columns(df, target=None, exclude=()):
+    def get_features_from_columns(df, target=None, exclude=()):
         columns = [c for c in df.columns if df[c].dtype in (np.int, np.float, np.bool) and c not in [target, *exclude]]
         return columns
 
     @staticmethod
-    def target_imputation(df, target):
+    def get_target(df, target):
         if target is None:
             target = YIELD
         if target == YIELD:
@@ -336,11 +333,20 @@ class MarketModels:
                 df = df.set_index('index' if df_index_name is None else df_index_name)
         return df, target
 
-    def purge(self):
-        logging.info('Purging all previously trained models!')
-        self.deactivate()
-        self._models = []
+    def purge(self, model):
+        if model == 'all':
+            logging.info('Purging all previously trained models!')
+            self.deactivate()
+            self._models = []
+        else:
+            logging.info(f'Removing model {model} from trained models repository!')
+            self._models.pop(model)
         return self._models
+
+    def rename(self, old_name, new_name):
+        if old_name in self._models.keys():
+            self._models.update({new_name: self._models[old_name]})
+            self._models.pop(old_name)
 
     def model_type(self, y, regression):
         if not isinstance(regression, bool):
@@ -374,9 +380,15 @@ class MarketModels:
         model.warm_start = True
         return model
 
-    def features_imputation(self, df, exclude=None, features=None, n_features=None, target=None):
-        df, target = self.target_imputation(df, target)
-        if features is None:
+    def get_features(self, df, exclude=None, features=None, n_features=None, target=None):
+        df, target = self.get_target(df, target)
+        if target is None:
+            target = df.columns[-1]
+            correlates = df.corr(method='pearson')[target].sort_values(ascending=False)
+            exclude = correlates[correlates > 0.9].index
+        if isinstance(features, str) and features.lower() == 'all':
+            features = self.get_features_from_columns(df, target, exclude)
+        elif features is None:
             if hasattr(self.model, 'n_features_in_'):
                 n_features = getattr(self.model, 'n_features_in_')
             if isinstance(n_features, numbers.Number):
@@ -391,12 +403,12 @@ class MarketModels:
                     features = [c for c in correlation.nlargest(int(n_features) + 1, target).index
                                 if c != target]
             else:
-                features = self.valid_as_features_columns(df, target, exclude)
+                features = self.get_features_from_columns(df, target, exclude)
         elif not isinstance(features, Iterable):
             features = [features]
-        return features, target
+        return features
 
-    def model_name_imputation(self, model_name, target):
+    def get_model_name(self, model_name, target):
         if model_name is None:
             if target not in self._models.keys():
                 model_name = target
@@ -435,8 +447,7 @@ class MarketModels:
         regression = self.model_type(y, regression)
         if not regression:
             y = y > 0
-        features, target = self.features_imputation(df, exclude=exclude, features=features, n_features=n_features,
-                                                    target=target)
+        features = self.get_features(df, exclude=exclude, features=features, n_features=n_features, target=target)
         if fill_features_na:
             x = df[features].fillna(method='bfill').values.astype('float32')
         else:
@@ -454,9 +465,10 @@ class MarketModels:
     def make_model(self, df, target, *args, model_name: str = None, features=None, n_features=10, regression=None,
                    exclude=(), test_size=None, random_state=None, **kwargs):
         self.deactivate()
-        model_name = self.model_name_imputation(model_name, target)
+        model_name = self.get_model_name(model_name, target)
         if model_name is None:
             return
+        features = self.get_features(df, exclude, features, n_features, target)
         x, y = self.get_xy_from_df(df, features, target, n_features, regression, exclude,
                                    test_size=test_size, random_state=random_state, train=True)
         regression = self.model_type(y, regression)
@@ -534,11 +546,11 @@ class MarketModels:
             if features is None:
                 features = self.features
             if features is None:
-                features, target = self.features_imputation(df, exclude=exclude, n_features=n_features, target=target)
+                features, target = self.get_features(df, exclude=exclude, n_features=n_features, target=target)
             if target is None:
                 target = self.target
             if target is None:
-                df, target = self.target_imputation(df, target)
+                df, target = self.get_target(df, target)
             # noinspection PyUnresolvedReferences
             try:
                 x = df[features].values
@@ -552,11 +564,11 @@ class MarketModels:
             if features is None:
                 features = self.features
             if features is None:
-                features, target = self.features_imputation(df, exclude=exclude, n_features=n_features, target=target)
+                features, target = self.get_features(df, exclude=exclude, n_features=n_features, target=target)
             if target is None:
                 target = self.target
             if target is None:
-                df, target = self.target_imputation(df, target)
+                df, target = self.get_target(df, target)
             try:
                 x = df[features].values
             except KeyError:
@@ -617,7 +629,7 @@ class MarketModels:
             target = self.target
         if features is None:
             features = self.features
-            features, target = self.features_imputation(df, features=features, exclude=exclude, target=target)
+            features, target = self.get_features(df, features=features, exclude=exclude, target=target)
         features_df = pd.DataFrame(columns=features)
         if method == 'all':
             return pd.DataFrame.from_dict({m: self.test_features_relevance(df, method=m) for m in

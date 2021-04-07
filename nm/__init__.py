@@ -805,7 +805,7 @@ class CoinData:
             assets = NMData().assets
         from_date, to_date = adjust(from_date, to_date, pd.Timestamp(EXCHANGE_OPENING_DATE))
         if from_date == to_date:
-            to_date = next_date(from_date)
+            to_date = tz_remove_and_normalize(pd.Timestamp.now.('utc'))
         symbols = [i.get('symbol') for i in self.binance_api.get_all_tickers()]
         for asset in tqdm(assets):
             try:
@@ -822,6 +822,7 @@ class CoinData:
                                           Client.KLINE_INTERVAL_1DAY, last_date.strftime('%Y-%m-%d'),
                                           to_date.strftime('%Y-%m-%d'))).set_index('Open time')
                 new_data['Asset'] = asset
+                new_data['Close time'] = pd.to_datetime(new_data['Close time'] * 10 ** 6)
                 merged_data = old_data[~(old_data.index >= old_data.index.max())].append(new_data)
                 try:
                     self.history = self.history[self.history['Asset'] != asset].append(merged_data)

@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="">
+    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="ML module in implementation">
+      <change afterPath="$PROJECT_DIR$/nm/export_data_from_pandas.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nm/ml.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/ml.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,10 +20,19 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/requirements.txt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="144">
+              <caret line="8" column="4" selection-start-line="8" selection-start-column="4" selection-end-line="8" selection-end-column="4" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="216">
-              <caret line="1414" lean-forward="true" selection-start-line="1414" selection-end-line="1414" />
+            <state relative-caret-position="134">
+              <caret line="815" column="37" lean-forward="true" selection-start-line="815" selection-start-column="37" selection-end-line="815" selection-end-column="37" />
               <folding>
                 <element signature="e#1373#1499#0" />
                 <element signature="e#1593#1714#0" />
@@ -152,7 +164,6 @@
                 <element signature="e#4095#4464#0" />
                 <element signature="e#4612#4644#0" />
                 <element signature="e#4675#4702#0" />
-                <element signature="e#30336#37656#0" />
                 <element signature="e#5342#5372#0" />
                 <element signature="e#5405#5434#0" />
                 <element signature="e#5485#5603#0" />
@@ -175,7 +186,6 @@
                 <element signature="e#10393#10609#0" />
                 <element signature="e#11144#11219#0" />
                 <element signature="e#36445#36837#0" />
-                <element signature="e#36954#37456#0" />
                 <element signature="e#37782#38766#0" />
                 <element signature="e#37528#51133#0" />
                 <element signature="e#11809#12250#0" />
@@ -184,13 +194,9 @@
                 <element signature="e#12284#12339#0" />
                 <element signature="e#12390#12508#0" />
                 <element signature="e#12557#12656#0" />
-                <element signature="e#12662#12701#0" />
                 <element signature="e#45153#45371#0" />
                 <element signature="e#45170#45314#0" />
                 <element signature="e#46425#46472#0" />
-                <element signature="e#46483#47073#0" />
-                <element signature="e#46508#46652#0" />
-                <element signature="e#47074#47217#0" />
                 <element signature="e#20466#20682#0" />
                 <element signature="e#20557#20681#0" />
                 <element signature="e#20849#24317#0" />
@@ -203,7 +209,7 @@
                 <element signature="e#22574#22866#0" />
                 <element signature="e#22928#23083#0" />
                 <element signature="e#23460#23731#0" />
-                <element signature="e#24379#24399#0" />
+                <element signature="e#45685#56011#0" />
                 <element signature="e#24521#24756#0" />
                 <element signature="e#24639#24756#0" />
                 <element signature="e#24888#25046#0" />
@@ -212,7 +218,6 @@
                 <element signature="e#25521#25550#0" />
                 <element signature="e#25596#25709#0" />
                 <element signature="e#25754#25853#0" />
-                <element signature="e#25900#25994#0" />
                 <element signature="e#26054#26075#0" />
                 <element signature="e#26126#26311#0" />
                 <element signature="e#26356#26804#0" />
@@ -228,12 +233,9 @@
                 <element signature="e#28426#29181#0" />
                 <element signature="e#28625#28940#0" />
                 <element signature="e#29222#29285#0" />
-                <element signature="e#57503#61437#0" />
                 <element signature="e#58041#58167#0" />
                 <element signature="e#58319#58446#0" />
                 <element signature="e#58502#58625#0" />
-                <element signature="e#57216#58000#0" />
-                <element signature="e#57469#57673#0" />
                 <element signature="e#57748#58126#0" />
                 <element signature="e#57630#57795#0" />
                 <element signature="e#57967#58138#0" />
@@ -248,7 +250,6 @@
                 <element signature="e#57634#57746#0" />
                 <element signature="e#57818#57881#0" />
                 <element signature="e#58046#58111#0" />
-                <element signature="e#58218#61838#0" />
                 <element signature="e#58391#59145#0" />
                 <element signature="e#58412#59067#0" />
                 <element signature="e#58454#58590#0" />
@@ -271,8 +272,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nm/util.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-304">
-              <caret line="8" selection-start-line="8" selection-end-line="8" />
+            <state relative-caret-position="200">
+              <caret line="40" selection-start-line="40" selection-end-line="40" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
                 <element signature="e#1762#2246#1" />
@@ -284,19 +285,36 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="67" column="9" selection-start-line="67" selection-end-line="67" selection-end-column="9" />
+            <state relative-caret-position="254">
+              <caret line="69" selection-start-line="69" selection-end-line="69" selection-end-column="79" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nm/ml.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="504" column="38" selection-start-line="504" selection-start-column="29" selection-end-line="504" selection-end-column="38" />
+            <state relative-caret-position="-151">
+              <caret line="431" column="33" selection-start-line="431" selection-start-column="33" selection-end-line="431" selection-end-column="33" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
+                <element signature="e#12549#13202#0" />
+                <element signature="e#14646#15647#0" />
+                <element signature="e#18186#18952#0" />
+                <element signature="e#19026#19445#0" />
+                <element signature="e#19976#20553#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/nm/export_data_from_pandas.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="522">
+              <caret line="29" column="53" selection-start-line="29" selection-start-column="29" selection-end-line="29" selection-end-column="53" />
+              <folding>
+                <element signature="e#0#19#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -314,9 +332,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>small</find>
-      <find>convert_small_balances_before_rebalance</find>
-      <find>binance_api</find>
       <find>MAKER_PREMIUM</find>
       <find>Close</find>
       <find>yiel</find>
@@ -341,9 +356,12 @@
       <find>make_modl</find>
       <find>make_mode</find>
       <find>regress</find>
-      <find>SINCE</find>
       <find>tpot</find>
       <find>Regressor</find>
+      <find>NM2</find>
+      <find>i</find>
+      <find>SINCE</find>
+      <find>corre</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -357,13 +375,14 @@
         <option value="$PROJECT_DIR$/setup.py" />
         <option value="$PROJECT_DIR$/config.py.example" />
         <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/requirements.txt" />
         <option value="$USER_HOME$/Documents/PycharmProjects/NM_rebalance/nm/__init__.py" />
         <option value="$PROJECT_DIR$/rebalance.py" />
-        <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/nm/util.py" />
-        <option value="$PROJECT_DIR$/nm/__init__.py" />
         <option value="$PROJECT_DIR$/nm/ml.py" />
+        <option value="$PROJECT_DIR$/requirements.txt" />
+        <option value="$PROJECT_DIR$/nm/export_data_from_pandas.py" />
+        <option value="$PROJECT_DIR$/config.py" />
+        <option value="$PROJECT_DIR$/nm/__init__.py" />
       </list>
     </option>
   </component>
@@ -374,9 +393,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
+    <option name="x" value="11" />
     <option name="y" value="25" />
     <option name="width" value="1440" />
-    <option name="height" value="821" />
+    <option name="height" value="819" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -390,11 +410,6 @@
             <path>
               <item name="NM_rebalance" type="b2602c69:ProjectViewProjectNode" />
               <item name="NM_rebalance" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="NM_rebalance" type="b2602c69:ProjectViewProjectNode" />
-              <item name="NM_rebalance" type="462c0819:PsiDirectoryNode" />
-              <item name="data" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="NM_rebalance" type="b2602c69:ProjectViewProjectNode" />
@@ -466,9 +481,6 @@
       <module name="NM_rebalance" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -802,7 +814,21 @@
       <option name="project" value="LOCAL" />
       <updated>1617576229099</updated>
     </task>
-    <option name="localTasksCounter" value="44" />
+    <task id="LOCAL-00044" summary="ML module in implementation">
+      <created>1617576585814</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1617576585814</updated>
+    </task>
+    <task id="LOCAL-00045" summary="ML module in implementation">
+      <created>1617580948361</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1617580948369</updated>
+    </task>
+    <option name="localTasksCounter" value="46" />
     <servers />
   </component>
   <component name="TodoView">
@@ -815,22 +841,22 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="25" width="1440" height="821" extended-state="0" />
+    <frame x="11" y="25" width="1440" height="819" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
       <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49744898" visible="true" weight="0.15665236" />
       <window_info id="Structure" order="2" sideWeight="0.502551" side_tool="true" weight="0.15665236" />
       <window_info anchor="bottom" id="Database Changes" order="0" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Terminal" order="1" sideWeight="0.4985694" weight="0.32780084" />
+      <window_info anchor="bottom" id="Terminal" order="1" sideWeight="0.4985694" weight="0.32732317" />
       <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5028612" side_tool="true" weight="0.45781466" />
-      <window_info anchor="bottom" id="Version Control" order="3" weight="0.32914925" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="4" sideWeight="0.49713877" visible="true" weight="0.45781466" />
+      <window_info anchor="bottom" id="Version Control" order="3" weight="0.32871014" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="4" sideWeight="0.49713877" visible="true" weight="0.45769763" />
       <window_info anchor="bottom" id="Docker" order="5" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="6" />
-      <window_info anchor="bottom" id="Find" order="7" weight="0.32780084" />
+      <window_info anchor="bottom" id="Find" order="7" weight="0.3259362" />
       <window_info anchor="bottom" id="Run" order="8" weight="0.32956153" />
-      <window_info anchor="bottom" id="Debug" order="9" sideWeight="0.4985694" weight="0.39695713" />
+      <window_info anchor="bottom" id="Debug" order="9" sideWeight="0.4985694" weight="0.3966713" />
       <window_info anchor="bottom" id="Cvs" order="10" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="11" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="12" weight="0.32823366" />
@@ -892,18 +918,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/__init__.py</url>
-          <line>1401</line>
+          <line>1272</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/ml.py</url>
-          <line>462</line>
+          <line>475</line>
           <option name="timeStamp" value="27" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/ml.py</url>
-          <line>442</line>
-          <option name="timeStamp" value="28" />
+          <line>600</line>
+          <option name="timeStamp" value="30" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -915,13 +941,7 @@
         <watch expression="nm_data._nm_data" language="Python" />
       </configuration>
       <configuration name="Python Console Debugger">
-        <watch expression="df.columns" language="Python" />
-        <watch expression="df.reset_index().sort_values([SYMBOL, OPEN_TIME])" language="Python" />
-        <watch expression="df2.loc[df2[df2.Symbol != df2.Symbol.shift(-1)][YIELD].index, YIELD]" language="Python" />
-        <watch expression="df_index_name" language="Python" />
-        <watch expression="df.index.name" language="Python" />
-        <watch expression="self.features_imputation(df, exclude=exclude, features=features, n_features=n_features,                                             target=target)" language="Python" />
-        <watch expression="self.model_train(*self.trim_XY(x, y), *args, regression=regression,                                                             **kwargs)" language="Python" />
+        <watch expression="x.shape" language="Python" />
       </configuration>
     </watches-manager>
   </component>
@@ -947,6 +967,11 @@
       </expression>
     </expressions>
     <expressions id="watch">
+      <expression>
+        <expression-string>x.shape</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>self.model_train(*self.trim_XY(x, y), *args, regression=regression,                                                             **kwargs)</expression-string>
         <language-id>Python</language-id>
@@ -989,11 +1014,6 @@
       </expression>
       <expression>
         <expression-string>coin_yields_for_date.loc['diff'] = abs(coin_yields_for_date['yield'] - yield_for_date)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_yields_for_date</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -1070,13 +1090,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/numpy/core/_methods.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="184">
-          <caret line="187" selection-start-line="187" selection-end-line="187" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/README">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="468">
@@ -1123,13 +1136,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="135">
           <caret line="567" selection-start-line="567" selection-end-line="567" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/requirements.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="6" column="6" selection-start-line="6" selection-start-column="6" selection-end-line="6" selection-end-column="6" />
         </state>
       </provider>
     </entry>
@@ -1189,24 +1195,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="67" column="9" selection-start-line="67" selection-end-line="67" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/nm/util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-304">
-          <caret line="8" selection-start-line="8" selection-end-line="8" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-            <element signature="e#1762#2246#1" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/generic.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="241">
@@ -1249,10 +1237,67 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/nm/util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="200">
+          <caret line="40" selection-start-line="40" selection-end-line="40" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+            <element signature="e#1762#2246#1" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/numpy/core/_methods.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="342">
+          <caret line="38" selection-start-line="38" selection-end-line="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/requirements.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="8" column="4" selection-start-line="8" selection-start-column="4" selection-end-line="8" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="254">
+          <caret line="69" selection-start-line="69" selection-end-line="69" selection-end-column="79" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nm/export_data_from_pandas.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="522">
+          <caret line="29" column="53" selection-start-line="29" selection-start-column="29" selection-end-line="29" selection-end-column="53" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nm/ml.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-151">
+          <caret line="431" column="33" selection-start-line="431" selection-start-column="33" selection-end-line="431" selection-end-column="33" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+            <element signature="e#12549#13202#0" />
+            <element signature="e#14646#15647#0" />
+            <element signature="e#18186#18952#0" />
+            <element signature="e#19026#19445#0" />
+            <element signature="e#19976#20553#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="216">
-          <caret line="1414" lean-forward="true" selection-start-line="1414" selection-end-line="1414" />
+        <state relative-caret-position="134">
+          <caret line="815" column="37" lean-forward="true" selection-start-line="815" selection-start-column="37" selection-end-line="815" selection-end-column="37" />
           <folding>
             <element signature="e#1373#1499#0" />
             <element signature="e#1593#1714#0" />
@@ -1384,7 +1429,6 @@
             <element signature="e#4095#4464#0" />
             <element signature="e#4612#4644#0" />
             <element signature="e#4675#4702#0" />
-            <element signature="e#30336#37656#0" />
             <element signature="e#5342#5372#0" />
             <element signature="e#5405#5434#0" />
             <element signature="e#5485#5603#0" />
@@ -1407,7 +1451,6 @@
             <element signature="e#10393#10609#0" />
             <element signature="e#11144#11219#0" />
             <element signature="e#36445#36837#0" />
-            <element signature="e#36954#37456#0" />
             <element signature="e#37782#38766#0" />
             <element signature="e#37528#51133#0" />
             <element signature="e#11809#12250#0" />
@@ -1416,13 +1459,9 @@
             <element signature="e#12284#12339#0" />
             <element signature="e#12390#12508#0" />
             <element signature="e#12557#12656#0" />
-            <element signature="e#12662#12701#0" />
             <element signature="e#45153#45371#0" />
             <element signature="e#45170#45314#0" />
             <element signature="e#46425#46472#0" />
-            <element signature="e#46483#47073#0" />
-            <element signature="e#46508#46652#0" />
-            <element signature="e#47074#47217#0" />
             <element signature="e#20466#20682#0" />
             <element signature="e#20557#20681#0" />
             <element signature="e#20849#24317#0" />
@@ -1435,7 +1474,7 @@
             <element signature="e#22574#22866#0" />
             <element signature="e#22928#23083#0" />
             <element signature="e#23460#23731#0" />
-            <element signature="e#24379#24399#0" />
+            <element signature="e#45685#56011#0" />
             <element signature="e#24521#24756#0" />
             <element signature="e#24639#24756#0" />
             <element signature="e#24888#25046#0" />
@@ -1444,7 +1483,6 @@
             <element signature="e#25521#25550#0" />
             <element signature="e#25596#25709#0" />
             <element signature="e#25754#25853#0" />
-            <element signature="e#25900#25994#0" />
             <element signature="e#26054#26075#0" />
             <element signature="e#26126#26311#0" />
             <element signature="e#26356#26804#0" />
@@ -1460,12 +1498,9 @@
             <element signature="e#28426#29181#0" />
             <element signature="e#28625#28940#0" />
             <element signature="e#29222#29285#0" />
-            <element signature="e#57503#61437#0" />
             <element signature="e#58041#58167#0" />
             <element signature="e#58319#58446#0" />
             <element signature="e#58502#58625#0" />
-            <element signature="e#57216#58000#0" />
-            <element signature="e#57469#57673#0" />
             <element signature="e#57748#58126#0" />
             <element signature="e#57630#57795#0" />
             <element signature="e#57967#58138#0" />
@@ -1480,7 +1515,6 @@
             <element signature="e#57634#57746#0" />
             <element signature="e#57818#57881#0" />
             <element signature="e#58046#58111#0" />
-            <element signature="e#58218#61838#0" />
             <element signature="e#58391#59145#0" />
             <element signature="e#58412#59067#0" />
             <element signature="e#58454#58590#0" />
@@ -1495,16 +1529,6 @@
             <element signature="e#59868#60013#0" />
             <element signature="e#60274#60406#0" />
             <element signature="e#60437#60577#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/nm/ml.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="504" column="38" selection-start-line="504" selection-start-column="29" selection-end-line="504" selection-end-column="38" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
           </folding>
         </state>
       </provider>

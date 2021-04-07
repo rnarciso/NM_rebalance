@@ -1,9 +1,10 @@
-tpot
 BeautifulSoup4
 html5lib
-pickle5
 lxml
 numpy
-python-binance
 pandas
+pickle5
+python-binance
+sqlalchemy
+tpot
 tqdm
