@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="ML module in implementation">
+    <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -28,15 +27,14 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="73">
-              <caret line="1134" column="12" lean-forward="true" selection-start-line="1134" selection-start-column="12" selection-end-line="1134" selection-end-column="12" />
+            <state relative-caret-position="281">
+              <caret line="155" column="121" lean-forward="true" selection-start-line="155" selection-start-column="121" selection-end-line="155" selection-end-column="121" />
               <folding>
                 <element signature="e#1373#1499#0" />
                 <element signature="e#1593#1714#0" />
                 <element signature="e#1568#2551#0" />
                 <element signature="e#2340#2415#0" />
                 <element signature="e#2795#3090#0" />
-                <element signature="e#2576#27944#0" />
                 <element signature="e#2698#3711#0" />
                 <element signature="e#2740#2810#0" />
                 <element signature="e#2910#3368#0" />
@@ -47,7 +45,6 @@
                 <element signature="e#3316#3368#0" />
                 <element signature="e#3762#4084#0" />
                 <element signature="e#3801#4051#0" />
-                <element signature="e#4127#5451#0" />
                 <element signature="e#4189#5411#0" />
                 <element signature="e#4355#5411#0" />
                 <element signature="e#4366#4622#0" />
@@ -212,7 +209,6 @@
                 <element signature="e#25349#25488#0" />
                 <element signature="e#25356#25488#0" />
                 <element signature="e#25521#25550#0" />
-                <element signature="e#25596#25709#0" />
                 <element signature="e#25754#25853#0" />
                 <element signature="e#26054#26075#0" />
                 <element signature="e#26126#26311#0" />
@@ -326,7 +322,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>MAKER_PREMIUM</find>
       <find>Close</find>
       <find>yiel</find>
       <find>yield_repo</find>
@@ -356,6 +351,7 @@
       <find>i</find>
       <find>corre</find>
       <find>SINCE</find>
+      <find>809</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -506,13 +502,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1616422167528</updated>
-    </task>
-    <task id="LOCAL-00001" summary="First public version">
-      <created>1616467681912</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1616467681927</updated>
     </task>
     <task id="LOCAL-00002" summary="First public version">
       <created>1616470458266</created>
@@ -836,7 +825,28 @@
       <option name="project" value="LOCAL" />
       <updated>1617826009520</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="ML module in implementation">
+      <created>1617827713799</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1617827713806</updated>
+    </task>
+    <task id="LOCAL-00049" summary="ML module in implementation">
+      <created>1617827818997</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1617827818997</updated>
+    </task>
+    <task id="LOCAL-00050" summary="ML module in implementation">
+      <created>1617827900573</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1617827900656</updated>
+    </task>
+    <option name="localTasksCounter" value="51" />
     <servers />
   </component>
   <component name="TodoView">
@@ -926,7 +936,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/__init__.py</url>
-          <line>1272</line>
+          <line>1274</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1304,15 +1314,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="73">
-          <caret line="1134" column="12" lean-forward="true" selection-start-line="1134" selection-start-column="12" selection-end-line="1134" selection-end-column="12" />
+        <state relative-caret-position="281">
+          <caret line="155" column="121" lean-forward="true" selection-start-line="155" selection-start-column="121" selection-end-line="155" selection-end-column="121" />
           <folding>
             <element signature="e#1373#1499#0" />
             <element signature="e#1593#1714#0" />
             <element signature="e#1568#2551#0" />
             <element signature="e#2340#2415#0" />
             <element signature="e#2795#3090#0" />
-            <element signature="e#2576#27944#0" />
             <element signature="e#2698#3711#0" />
             <element signature="e#2740#2810#0" />
             <element signature="e#2910#3368#0" />
@@ -1323,7 +1332,6 @@
             <element signature="e#3316#3368#0" />
             <element signature="e#3762#4084#0" />
             <element signature="e#3801#4051#0" />
-            <element signature="e#4127#5451#0" />
             <element signature="e#4189#5411#0" />
             <element signature="e#4355#5411#0" />
             <element signature="e#4366#4622#0" />
@@ -1488,7 +1496,6 @@
             <element signature="e#25349#25488#0" />
             <element signature="e#25356#25488#0" />
             <element signature="e#25521#25550#0" />
-            <element signature="e#25596#25709#0" />
             <element signature="e#25754#25853#0" />
             <element signature="e#26054#26075#0" />
             <element signature="e#26126#26311#0" />
