@@ -5,7 +5,42 @@ import pickle5 as pickle
 import pandas as pd
 from functools import reduce
 
+
+AT_SIGN = ' às '
+AVG_SLIPPAGE = 0.0045755
+CLOSE_TIME = 'Close time'
+COIN_MARKET_COLUMNS = ['volume_24h', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'market_cap']
+COIN_HISTORY_FILE = 'history.dat'
+DATE = 'date'
+DEFAULT_COINS_IN_HISTORY_DATA = ['BTC']
+EXCHANGE_OPENING_DATE = '17 Aug, 2017'
+KEYFILE = '.keys'
+MAKER_PREMIUM = 0.1 / 100
+MINIMUM_TIME_OFFSET = 2000
+NM_COLUMNS = ['symbol', 'price', 'NM1', 'NM2', 'NM3', 'NM4', 'date']
+NM_MAX = 4
+NM_TIME_ZONE = 'Brazil/East'
+NM2_RANGE = 17
+NM4_RANGE = 20
+NM_REPORT_DEFAULT_URL = 'http://127.0.0.1/nmREPORT.asp?NM='
+NMDATA_FILE = 'nm_index.dat'
+ORDER_AMOUNT_REDUCING_FACTOR = 5 / 100
 PICKLE_PROTOCOL = 4
+QUOTE_ASSET = 'USDT'
+RISK_FREE_DAILY_IRATE = 0.0001596535874
+SINCE = '20191231'
+SYMBOL = 'symbol'
+STATEMENT_FILE = 'statement.dat'
+UPDATED = 'atualizado'
+UPDATED_ON: str = f'{UPDATED} em'
+TOP_N_MAX = 4
+YIELD_FILE = 'yield.dat'
+
+# Following constants are imported from Client later on
+SIDE_SELL, SIDE_BUY, TIME_IN_FORCE_GTC, ORDER_STATUS_FILLED, ORDER_TYPE_LIMIT, ORDER_TYPE_LIMIT_MAKER, \
+    ORDER_TYPE_MARKET = [None]*7
+
+
 
 
 def downgrade_pickle(filename):

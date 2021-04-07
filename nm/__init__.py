@@ -12,42 +12,14 @@ from collections.abc import Collection
 from itertools import permutations, combinations
 # noinspection PyPackageRequirements
 from binance.exceptions import BinanceAPIException
-from nm.util import math, downgrade_pickle, next_date, readable_kline, safe_save, sum_dict_values, truncate, \
-    tz_remove_and_normalize
+from nm.util import *
 
-AT_SIGN = ' às '
-AVG_SLIPPAGE = 0.0045755
-COIN_MARKET_COLUMNS = ['volume_24h', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'market_cap']
-COIN_HISTORY_FILE = 'history.dat'
-DEFAULT_COINS_IN_HISTORY_DATA = ['BTC']
-EXCHANGE_OPENING_DATE = '17 Aug, 2017'
-KEYFILE = '.keys'
-MAKER_PREMIUM = 0.1 / 100
-MINIMUM_TIME_OFFSET = 2000
-NM_COLUMNS = ['symbol', 'price', 'NM1', 'NM2', 'NM3', 'NM4', 'date']
-NM_MAX = 4
-NM_TIME_ZONE = 'Brazil/East'
-NM2_RANGE = 17
-NM4_RANGE = 20
-NM_REPORT_DEFAULT_URL = 'http://127.0.0.1/nmREPORT.asp?NM='
-NMDATA_FILE = 'nm_index.dat'
-ORDER_AMOUNT_REDUCING_FACTOR = 5 / 100
-QUOTE_ASSET = 'USDT'
-RISK_FREE_DAILY_IRATE = 0.0001596535874
-SINCE = '20191231'
-SYMBOL = 'symbol'
-STATEMENT_FILE = 'statement.dat'
-UPDATED = 'atualizado'
-UPDATED_ON: str = f'{UPDATED} em'
-TOP_N_MAX = 4
-YIELD_FILE = 'yield.dat'
-# Following constants are imported from Client later on
-SIDE_SELL, SIDE_BUY, TIME_IN_FORCE_GTC, ORDER_STATUS_FILLED, ORDER_TYPE_LIMIT, ORDER_TYPE_LIMIT_MAKER, \
-    ORDER_TYPE_MARKET = [None]*7
+
 # import constants from Client
 for const in globals().copy().keys():
     if globals()[const] is None and Client.__dict__.get(const) is not None:
         globals()[const] = Client.__dict__[const]
+
 tqdm.pandas()
 
 
@@ -1296,11 +1268,11 @@ class NMData:
         return test.T.rms.sort_values()
 
     def tech_data(self, nm_index, n=None):
-        return self.history[['date', 'symbol', f'NM{nm_index}']].iloc[:n].join(
-            self.history[['date', 'symbol']].iloc[:n].progress_apply(
-            lambda row: self.coins.add_ta(row['symbol'], from_date=row['date'] - pd.Timedelta(100, 'days')
-                                          ).asof(next_date(row['date'])), axis=1)).drop(
-                                      ['Asset', 'Close time'], axis='columns')
+        return self.history[[DATE, SYMBOL, f'NM{nm_index}']].iloc[:n].join(
+            self.history[[DATE, SYMBOL]].iloc[:n].progress_apply(
+            lambda row: self.coins.add_ta(row[SYMBOL], from_date=row[DATE] - pd.Timedelta(100, 'days')
+                                          ).asof(next_date(row[DATE])), axis=1)).drop(
+                                      [SYMBOL, CLOSE_TIME], axis='columns')
 
 
 class Statement:
