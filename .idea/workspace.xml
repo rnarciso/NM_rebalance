@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -27,25 +27,16 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="281">
-              <caret line="155" column="121" lean-forward="true" selection-start-line="155" selection-start-column="121" selection-end-line="155" selection-end-column="121" />
+            <state relative-caret-position="334">
+              <caret line="212" column="43" lean-forward="true" selection-start-line="212" selection-start-column="43" selection-end-line="212" selection-end-column="43" />
               <folding>
                 <element signature="e#1373#1499#0" />
                 <element signature="e#1593#1714#0" />
                 <element signature="e#1568#2551#0" />
                 <element signature="e#2340#2415#0" />
                 <element signature="e#2795#3090#0" />
-                <element signature="e#2698#3711#0" />
-                <element signature="e#2740#2810#0" />
-                <element signature="e#2910#3368#0" />
-                <element signature="e#2931#3264#0" />
-                <element signature="e#3019#3195#0" />
-                <element signature="e#3068#3195#0" />
-                <element signature="e#3139#3195#0" />
-                <element signature="e#3316#3368#0" />
                 <element signature="e#3762#4084#0" />
                 <element signature="e#3801#4051#0" />
-                <element signature="e#4189#5411#0" />
                 <element signature="e#4355#5411#0" />
                 <element signature="e#4366#4622#0" />
                 <element signature="e#4959#5411#0" />
@@ -56,11 +47,7 @@
                 <element signature="e#5692#5746#0" />
                 <element signature="e#5819#6554#0" />
                 <element signature="e#6077#6476#0" />
-                <element signature="e#6609#7637#0" />
-                <element signature="e#6669#7233#0" />
                 <element signature="e#6758#6973#0" />
-                <element signature="e#7260#7353#0" />
-                <element signature="e#7379#7577#0" />
                 <element signature="e#7673#7796#0" />
                 <element signature="e#7841#8403#0" />
                 <element signature="e#7928#8403#0" />
@@ -503,27 +490,6 @@
       <option name="presentableId" value="Default" />
       <updated>1616422167528</updated>
     </task>
-    <task id="LOCAL-00002" summary="First public version">
-      <created>1616470458266</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1616470458266</updated>
-    </task>
-    <task id="LOCAL-00003" summary="First public version">
-      <created>1616472857949</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1616472857949</updated>
-    </task>
-    <task id="LOCAL-00004" summary="First public version">
-      <created>1616474294170</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1616474294170</updated>
-    </task>
     <task id="LOCAL-00005" summary="First public version">
       <created>1616501173087</created>
       <option name="number" value="00005" />
@@ -846,7 +812,28 @@
       <option name="project" value="LOCAL" />
       <updated>1617827900656</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="ML module in implementation">
+      <created>1617828402972</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1617828402972</updated>
+    </task>
+    <task id="LOCAL-00052" summary="ML module in implementation">
+      <created>1617828454704</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1617828454704</updated>
+    </task>
+    <task id="LOCAL-00053" summary="ML module in implementation">
+      <created>1617828986981</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1617828986982</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="TodoView">
@@ -860,7 +847,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="11" y="25" width="1440" height="819" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
       <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49744898" visible="true" weight="0.15665236" />
@@ -936,7 +922,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/__init__.py</url>
-          <line>1274</line>
+          <line>1282</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1314,25 +1300,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="281">
-          <caret line="155" column="121" lean-forward="true" selection-start-line="155" selection-start-column="121" selection-end-line="155" selection-end-column="121" />
+        <state relative-caret-position="334">
+          <caret line="212" column="43" lean-forward="true" selection-start-line="212" selection-start-column="43" selection-end-line="212" selection-end-column="43" />
           <folding>
             <element signature="e#1373#1499#0" />
             <element signature="e#1593#1714#0" />
             <element signature="e#1568#2551#0" />
             <element signature="e#2340#2415#0" />
             <element signature="e#2795#3090#0" />
-            <element signature="e#2698#3711#0" />
-            <element signature="e#2740#2810#0" />
-            <element signature="e#2910#3368#0" />
-            <element signature="e#2931#3264#0" />
-            <element signature="e#3019#3195#0" />
-            <element signature="e#3068#3195#0" />
-            <element signature="e#3139#3195#0" />
-            <element signature="e#3316#3368#0" />
             <element signature="e#3762#4084#0" />
             <element signature="e#3801#4051#0" />
-            <element signature="e#4189#5411#0" />
             <element signature="e#4355#5411#0" />
             <element signature="e#4366#4622#0" />
             <element signature="e#4959#5411#0" />
@@ -1343,11 +1320,7 @@
             <element signature="e#5692#5746#0" />
             <element signature="e#5819#6554#0" />
             <element signature="e#6077#6476#0" />
-            <element signature="e#6609#7637#0" />
-            <element signature="e#6669#7233#0" />
             <element signature="e#6758#6973#0" />
-            <element signature="e#7260#7353#0" />
-            <element signature="e#7379#7577#0" />
             <element signature="e#7673#7796#0" />
             <element signature="e#7841#8403#0" />
             <element signature="e#7928#8403#0" />

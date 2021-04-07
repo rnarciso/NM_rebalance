@@ -831,19 +831,20 @@ class CoinData:
                 new_data = readable_kline(self.binance_api.get_historical_klines(symbol,
                                           Client.KLINE_INTERVAL_1DAY, last_date.strftime('%Y-%m-%d'),
                                           to_date.strftime('%Y-%m-%d'))).set_index('Open time')
-                new_data['Asset'] = asset
+                new_data[SYMBOL] = asset
                 new_data['Close time'] = pd.to_datetime(new_data['Close time'] * 10 ** 6)
                 merged_data = old_data[~(old_data.index >= old_data.index.max())].append(new_data)
                 try:
-                    self.history = self.history[self.history['Asset'] != asset].append(merged_data)
+                    self.history = self.history[self.history[SYMBOL] != asset].append(merged_data)
                 except KeyError:
                     self.history = self.history.append(merged_data)
             except ValueError:
                 logging.info(f'No data for {symbol} from {from_date} to {to_date}.')
             except Exception as e:
                 logging.error(e)
-        self.history = self.history.sort_values('Asset').sort_index()
-        self.save()
+        if SYMBOL in self.history.columns:
+            self.history = self.history.sort_values(SYMBOL).sort_index()
+            self.save()
         return self.history
 
     def update_single_date(self, assets: list=None, date=None):
