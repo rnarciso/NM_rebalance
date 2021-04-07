@@ -6,5 +6,6 @@ pandas
 pickle5
 python-binance
 sqlalchemy
+ta
 tpot
 tqdm

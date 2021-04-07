@@ -1133,7 +1133,7 @@ class NMData:
                 self.filename = NMDATA_FILE
             datafile = self.filename
         try:
-            self.history = pd.read_pickle(datafile)
+            self._history = pd.read_pickle(datafile)
         except FileNotFoundError:
             pass
         except ValueError:
@@ -1141,7 +1141,7 @@ class NMData:
             return self.load(datafile)
         except Exception as e:
             logging.error(e)
-        return self.history
+        return self._history
 
     def save(self):
         if self.filename is None:
