@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -27,8 +28,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="334">
-              <caret line="212" column="43" lean-forward="true" selection-start-line="212" selection-start-column="43" selection-end-line="212" selection-end-column="43" />
+            <state relative-caret-position="259">
+              <caret line="921" column="17" lean-forward="true" selection-start-line="921" selection-start-column="17" selection-end-line="921" selection-end-column="17" />
               <folding>
                 <element signature="e#1373#1499#0" />
                 <element signature="e#1593#1714#0" />
@@ -47,6 +48,7 @@
                 <element signature="e#5692#5746#0" />
                 <element signature="e#5819#6554#0" />
                 <element signature="e#6077#6476#0" />
+                <element signature="e#6669#7233#0" />
                 <element signature="e#6758#6973#0" />
                 <element signature="e#7673#7796#0" />
                 <element signature="e#7841#8403#0" />
@@ -262,8 +264,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="254">
-              <caret line="69" selection-start-line="69" selection-end-line="69" selection-end-column="79" />
+            <state relative-caret-position="1242">
+              <caret line="69" column="79" lean-forward="true" selection-start-line="39" selection-start-column="1" selection-end-line="69" selection-end-column="79" />
             </state>
           </provider>
         </entry>
@@ -309,11 +311,8 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>Close</find>
-      <find>yiel</find>
       <find>yield_repo</find>
       <find>COIN_HISTORY_FILE</find>
-      <find>symbols</find>
       <find>from_date</find>
       <find>update_single_date</find>
       <find>get</find>
@@ -339,6 +338,9 @@
       <find>corre</find>
       <find>SINCE</find>
       <find>809</find>
+      <find>symbols</find>
+      <find>connect</find>
+      <find>update</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -489,20 +491,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1616422167528</updated>
-    </task>
-    <task id="LOCAL-00005" summary="First public version">
-      <created>1616501173087</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1616501173088</updated>
-    </task>
-    <task id="LOCAL-00006" summary="Back tester implementation in process">
-      <created>1616855471952</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1616855471952</updated>
     </task>
     <task id="LOCAL-00007" summary="Back tester implementation in process">
       <created>1616856983530</created>
@@ -833,7 +821,21 @@
       <option name="project" value="LOCAL" />
       <updated>1617828986982</updated>
     </task>
-    <option name="localTasksCounter" value="54" />
+    <task id="LOCAL-00054" summary="ML module in implementation">
+      <created>1617830088902</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1617830088905</updated>
+    </task>
+    <task id="LOCAL-00055" summary="ML module in implementation">
+      <created>1617830317082</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1617830317082</updated>
+    </task>
+    <option name="localTasksCounter" value="56" />
     <servers />
   </component>
   <component name="TodoView">
@@ -847,6 +849,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="11" y="25" width="1440" height="819" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
       <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49744898" visible="true" weight="0.15665236" />
@@ -855,7 +858,7 @@
       <window_info anchor="bottom" id="Terminal" order="1" sideWeight="0.4985694" weight="0.32732317" />
       <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5028612" side_tool="true" weight="0.45781466" />
       <window_info anchor="bottom" id="Version Control" order="3" weight="0.32871014" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="4" sideWeight="0.49713877" visible="true" weight="0.45769763" />
+      <window_info anchor="bottom" id="Python Console" order="4" sideWeight="0.49713877" weight="0.45769763" />
       <window_info anchor="bottom" id="Docker" order="5" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="6" />
       <window_info anchor="bottom" id="Find" order="7" weight="0.3259362" />
@@ -922,7 +925,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nm/__init__.py</url>
-          <line>1282</line>
+          <line>1289</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1259,13 +1262,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="254">
-          <caret line="69" selection-start-line="69" selection-end-line="69" selection-end-column="79" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/nm/export_data_from_pandas.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="522">
@@ -1298,10 +1294,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1242">
+          <caret line="69" column="79" lean-forward="true" selection-start-line="39" selection-start-column="1" selection-end-line="69" selection-end-column="79" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="334">
-          <caret line="212" column="43" lean-forward="true" selection-start-line="212" selection-start-column="43" selection-end-line="212" selection-end-column="43" />
+        <state relative-caret-position="259">
+          <caret line="921" column="17" lean-forward="true" selection-start-line="921" selection-start-column="17" selection-end-line="921" selection-end-column="17" />
           <folding>
             <element signature="e#1373#1499#0" />
             <element signature="e#1593#1714#0" />
@@ -1320,6 +1323,7 @@
             <element signature="e#5692#5746#0" />
             <element signature="e#5819#6554#0" />
             <element signature="e#6077#6476#0" />
+            <element signature="e#6669#7233#0" />
             <element signature="e#6758#6973#0" />
             <element signature="e#7673#7796#0" />
             <element signature="e#7841#8403#0" />

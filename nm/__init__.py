@@ -19,6 +19,7 @@ AT_SIGN = ' às '
 AVG_SLIPPAGE = 0.0045755
 COIN_MARKET_COLUMNS = ['volume_24h', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'market_cap']
 COIN_HISTORY_FILE = 'history.dat'
+DEFAULT_COINS_IN_HISTORY_DATA = ['BTC']
 EXCHANGE_OPENING_DATE = '17 Aug, 2017'
 KEYFILE = '.keys'
 MAKER_PREMIUM = 0.1 / 100
@@ -816,6 +817,8 @@ class CoinData:
     def update(self, assets: list=None, from_date=None, to_date=None):
         if assets is None:
             assets = NMData().assets
+            if assets is None:
+                assets = DEFAULT_COINS_IN_HISTORY_DATA
         from_date, to_date = adjust(from_date, to_date, pd.Timestamp(EXCHANGE_OPENING_DATE))
         if from_date == to_date:
             to_date = tz_remove_and_normalize(pd.Timestamp.now('utc'))
@@ -907,7 +910,7 @@ class CoinData:
         df.fillna(0, inplace=True)
         return df['sharpe']
 
-    def ta(self, coin, from_date=None, risk_free_ratio=6/100, days_range=10):
+    def add_ta(self, coin, from_date=None, risk_free_ratio=6 / 100, days_range=10):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             df = ta.add_all_ta_features(
@@ -1295,8 +1298,8 @@ class NMData:
     def tech_data(self, nm_index, n=None):
         return self.history[['date', 'symbol', f'NM{nm_index}']].iloc[:n].join(
             self.history[['date', 'symbol']].iloc[:n].progress_apply(
-            lambda row: self.coins.ta(row['symbol'], from_date=row['date'] - pd.Timedelta(100, 'days')
-                                      ).asof(next_date(row['date'])), axis=1)).drop(
+            lambda row: self.coins.add_ta(row['symbol'], from_date=row['date'] - pd.Timedelta(100, 'days')
+                                          ).asof(next_date(row['date'])), axis=1)).drop(
                                       ['Asset', 'Close time'], axis='columns')
 
 
