@@ -205,13 +205,16 @@ class Portfolio:
             try:
                 self._client = Client(api_key, api_secret)
                 self.connected = True
-            except Exception as e:
-                logging.error(e)
+            except NameError:
                 try:
                     self._client = Client()
                     self.connected = True
                 except BinanceAPIException:
                     self.connected = False
+            except Exception as e:
+                logging.error(e)
+                self.connected = False
+
             return self._client
         except Exception as e:
             logging.error(e)
