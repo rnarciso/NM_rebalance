@@ -153,7 +153,8 @@ class Portfolio:
         if hasattr(super(), attr):
             super().__getattribute__(attr)
         else:
-            logging.error('Binance API object has no attribute {attr}, or is not initialized. Check configuration file!')
+            logging.error(f'Binance API object has no attribute {attr}, '
+                          f'or is not initialized.\nCheck configuration file!')
 
     @property
     def fees(self):
@@ -201,9 +202,16 @@ class Portfolio:
             api_secret = self._config.get('api_secret')
         try:
             logging.info('Connecting ')
-            # noinspection PyUnboundLocalVariable
-            self._client = Client(api_key, api_secret)
-            self.connected = True
+            try:
+                self._client = Client(api_key, api_secret)
+                self.connected = True
+            except Exception as e:
+                logging.error(e)
+                try:
+                    self._client = Client()
+                    self.connected = True
+                except BinanceAPIException:
+                    self.connected = False
             return self._client
         except Exception as e:
             logging.error(e)
