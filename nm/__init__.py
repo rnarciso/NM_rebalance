@@ -1269,10 +1269,10 @@ class NMData:
 
     def tech_data(self, nm_index, n=None):
         return self.history[[DATE, SYMBOL, f'NM{nm_index}']].iloc[:n].join(
-            self.history[[DATE, SYMBOL]].iloc[:n].progress_apply(lambda row: self.coins.add_ta(row[SYMBOL],
-                                                                 from_date=row[DATE] - pd.Timedelta(100, 'days')
-                                                                ).asof(next_date(row[DATE])).
-                                                                 drop([SYMBOL, CLOSE_TIME], axis=1)), axis='columns')
+                self.history[[DATE, SYMBOL]].iloc[:n].progress_apply(lambda row: self.coins.add_ta(row[SYMBOL],
+                                                                     from_date=row[DATE] - pd.Timedelta(100, 'days')).
+                                                                     asof(next_date(row[DATE])).drop(SYMBOL), axis=1))
+
 
 
 class Statement:
