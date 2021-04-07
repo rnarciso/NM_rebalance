@@ -1099,7 +1099,7 @@ class NMData:
 
     @property
     def assets(self):
-        if self.history is None or len(self.history) > 0:
+        if self.history is not None and len(self.history) > 0:
             return self.history.symbol.unique()
         else:
             return list()
