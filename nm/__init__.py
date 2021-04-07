@@ -805,7 +805,7 @@ class CoinData:
             assets = NMData().assets
         from_date, to_date = adjust(from_date, to_date, pd.Timestamp(EXCHANGE_OPENING_DATE))
         if from_date == to_date:
-            to_date = tz_remove_and_normalize(pd.Timestamp.now.('utc'))
+            to_date = tz_remove_and_normalize(pd.Timestamp.now('utc'))
         symbols = [i.get('symbol') for i in self.binance_api.get_all_tickers()]
         for asset in tqdm(assets):
             try:
