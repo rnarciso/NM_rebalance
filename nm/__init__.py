@@ -50,7 +50,7 @@ def adjust(from_date, to_date, default_date=None):
     return from_date, to_date
 
 
-def convert(nmdf):
+def dataframe_decimal_convert(nmdf):
     nmdf[nmdf.columns[0]] = pd.to_datetime(nmdf[nmdf.columns[0]], dayfirst=True)
     nmdf[nmdf.columns[1]] = pd.to_numeric(nmdf[nmdf.columns[1]].str.replace('%', '').str.replace(',', '.'))
     return nmdf.rename({nmdf.columns[0]: 'date', nmdf.columns[1]: 'yield'}, axis='columns').set_index('date')
@@ -904,6 +904,19 @@ class CoinData:
         coin_yields_for_date = coin_yields_for_date.set_index(SYMBOL)[YIELD]
         return coin_yields_for_date
 
+    def add_tech_analisys(self, add_next_day_results=False, pump_percentage=1.5, dump_percentage=-1.5):
+        all_coins_df = pd.DataFrame()
+        for coin in tqdm(self.history.symbol.unique()):
+            coin_df = self.add_ta(coin)
+            coin_df[SYMBOL] = coin
+            if add_next_day_results:
+                coin_df['next_dr'] = coin_df['others_dr'].shift(-1)
+                coin_df['next_dlr'] = coin_df['others_dlr'].shift(-1)
+                coin_df['next_pump'] = coin_df['next_dlr'] >= pump_percentage
+                coin_df['next_dump'] = coin_df['next_dlr'] <= dump_percentage
+            all_coins_df = pd.concat([all_coins_df, coin_df])
+        return all_coins_df[[SYMBOL]+list(all_coins_df.columns[all_coins_df.columns != SYMBOL])]
+
 
 class Backtest:
     def __init__(self, advisor=None):
@@ -1242,7 +1255,7 @@ class NMData:
 
             return valid_combinations
 
-        nm_to_find = convert(nm_to_find).sort_index(ascending=False)
+        nm_to_find = dataframe_decimal_convert(nm_to_find).sort_index(ascending=False)
         discovered_nm = {}
         nm_to_find[f'suggested NM{nm_index}'] = nm_to_find.progress_apply(find_nm, axis=1)
         return nm_to_find
