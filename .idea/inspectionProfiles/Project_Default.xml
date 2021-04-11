@@ -551,6 +551,9 @@
         <list>
           <option value="bool.append" />
           <option value="deap.creator.FitnessMulti" />
+          <option value="config.ta_file" />
+          <option value="deap.creator.Individual" />
+          <option value="typing.Iterable.__getitem__" />
         </list>
       </option>
     </inspection_tool>
@@ -597,7 +600,7 @@
     <inspection_tool class="ShellCheck" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="ShiftOutOfRangeJS" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SillyAssignmentJS" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="SpellCheckingInspection" enabled="true" level="TYPO" enabled_by_default="true">
+    <inspection_tool class="SpellCheckingInspection" enabled="false" level="TYPO" enabled_by_default="false">
       <option name="processCode" value="true" />
       <option name="processLiterals" value="true" />
       <option name="processComments" value="true" />

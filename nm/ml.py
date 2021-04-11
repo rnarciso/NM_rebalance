@@ -207,6 +207,20 @@ def rebuild_me(self):
     return self
 
 
+class Model:
+    def __init__(self):
+        self._engine = None
+        self.name = None
+        self.features = None
+        self.target = None
+
+    @property
+    def model_type(self):
+        if hasattr(self._engine, 'regression'):
+            if self._engine.regression:
+                return Regressor
+
+
 # noinspection PyTypeChecker
 class MarketModels:
 

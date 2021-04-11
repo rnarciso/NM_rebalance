@@ -1,10 +1,14 @@
 import os
+import sys
 import math
 import logging
-import pickle5 as pickle
 import pandas as pd
 from functools import reduce
 
+if sys.version_info[:3] > (3, 7):
+    import pickle5 as pickle
+else:
+    import pickle
 
 AT_SIGN = ' às '
 AVG_SLIPPAGE = 0.0045755
@@ -29,7 +33,7 @@ NMDATA_FILE = 'nm_index.dat'
 OPEN = 'Open'
 OPEN_TIME = 'Open time'
 ORDER_AMOUNT_REDUCING_FACTOR = 5 / 100
-PICKLE_PROTOCOL = 4
+PICKLE_PROTOCOL = 5
 QUOTE_ASSET = 'USDT'
 RISK_FREE_DAILY_IRATE = 0.0001596535874
 SINCE = '20191231'
@@ -37,6 +41,7 @@ SYMBOL = 'symbol'
 STATEMENT_FILE = 'statement.dat'
 UPDATED = 'atualizado'
 UPDATED_ON: str = f'{UPDATED} em'
+TA_DATA_FILE = 'ta_data.dat'
 TOP_N_MAX = 4
 YIELD = 'yield'
 YIELD_FILE = 'yield.dat'
@@ -44,8 +49,6 @@ YIELD_FILE = 'yield.dat'
 # Following constants are imported from Client later on
 SIDE_SELL, SIDE_BUY, TIME_IN_FORCE_GTC, ORDER_STATUS_FILLED, ORDER_TYPE_LIMIT, ORDER_TYPE_LIMIT_MAKER, \
     ORDER_TYPE_MARKET = [None]*7
-
-
 
 
 def downgrade_pickle(filename):
@@ -70,12 +73,11 @@ def truncate(number: float, step) -> str:
     return f'%.{digits}f' % (int(number * 10 ** digits) / 10 ** digits)
 
 
-
 def is_serializable(obj):
+    # noinspection PyPep8,PyBroadException
     try:
         pickle.loads(pickle.dumps(obj))
         return True
-    # noinspection PyBroadException
     except:
         return False
 

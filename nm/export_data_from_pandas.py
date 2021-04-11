@@ -15,6 +15,7 @@ print(data.head())
 
 # Write the data into a table in PostgreSQL Database
 
+# noinspection PyPep8
 data.to_sql(name = 'superstore',
             con = engine,
             if_exists='append',
