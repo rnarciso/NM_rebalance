@@ -1012,16 +1012,18 @@ class CoinData:
         safe_save(self.history, self.filename)
 
     def yield_for_coin(self, coin, from_date=None, to_date=None):
-        if to_date is not None and pd.Timestamp(to_date) > self.history.index.max():
-            self.update([coin])
+        self.need_update(coin, to_date)
         df = self.get(coin, from_date, to_date)
         return df.iloc[-1]['Close'] / df.iloc[0]['Close'] - 1
+
+    def need_update(self, coin, to_date):
+        if to_date is not None and pd.Timestamp(to_date) - self.history[CLOSE_TIME].iloc[-1] > pd.Timedelta(1, 'day'):
+            self.update([coin])
 
     def yield_for_coins(self, coins, from_date=None, to_date=None, return_df=False):
         if to_date is None:
             to_date = from_date
-        if to_date is not None and pd.Timestamp(to_date) > self.history.index.max():
-            self.update(coins)
+        self.need_update(coins, to_date)
         df = pd.DataFrame()
         for coin in coins:
             df.loc[coin, 'yield'] = self.yield_for_coin(coin, from_date, next_date(to_date))
@@ -1119,7 +1121,7 @@ class Backtest:
                                                           from_date, *kwargs) for account in accounts])
 
     def yield_simulation(self, contributions: Deposits, to_date=None, fees=True, slippage=AVG_SLIPPAGE, top_n=4,
-                         fee_type='taker'):
+                         fee_type='taker', interval=1):
         # noinspection PyShadowingNames
         def coin_yield(row):
             try:
@@ -1136,7 +1138,7 @@ class Backtest:
         dfs = {}
         for nm in sorted(contributions.df.NM.unique()):
             dfs[nm] = pd.DataFrame()
-            min_date = contributions.df[contributions.df.NM == nm].index.min()
+            min_date = next_date(contributions.df[contributions.df.NM == nm].index.min(), -1)
             if to_date is None:
                 to_date = tz_remove_and_normalize('now')
             else:
@@ -1144,21 +1146,20 @@ class Backtest:
             value = 0
             last_set_of_coins = set()
             nmdf = dfs[nm]
-            for date in tqdm(pd.date_range(min_date, to_date)):
+            for date in tqdm(pd.date_range(min_date, to_date, freq=f'{interval}D')):
                 nmdf.loc[date, 'open'] = value
-                if date in contributions.df[contributions.df['NM'] == nm].index:
-                    nmdf.loc[date, 'contribution'] = contributions.df.loc[date, 'Quote Value']
-                    value += contributions.df.loc[date, 'Quote Value']
+                if next_date(date) in contributions.df[contributions.df['NM'] == nm].index:
+                    nmdf.loc[date, 'contribution'] = contributions.df.loc[next_date(date), 'Quote Value']
+                    value += contributions.df.loc[next_date(date), 'Quote Value']
                 else:
                     nmdf.loc[date, 'contribution'] = 0
                 # noinspection PyBroadException
                 try:
-                    coins_for_date = self.advisor.get(nm, next_date(date, -1))[:top_n]
+                    coins_for_date = self.advisor.get(nm, date)[:top_n]
                     if len(coins_for_date) > 0:
                         coins_for_date['date'] = date
-                        nmdf.loc[date, f'NM{nm} yield'] = self.coin_data.yield_for_coins(coins_for_date.index,
-                                                                                         next_date(date, -1))
-
+                        nmdf.loc[date, f'NM{nm} yield'] = self.coin_data.yield_for_coins(
+                                coins_for_date.index, from_date=date, to_date=next_date(date, interval - 1))
                         nmdf.loc[date, f'NM{nm} coins'] = ','.join(coins_for_date.index)
                         value = value * (1 + nmdf.loc[date, f'NM{nm} yield'])
                         nmdf.loc[date, 'close'] = value
@@ -1175,6 +1176,7 @@ class Backtest:
                     logging.error(f'\n{e}, while processing data for {date.date()}.')
 
         consolidated_df = pd.concat(dfs.values()).reset_index().groupby('index').sum()
+        consolidated_df.index = consolidated_df.index.shift(1, freq='D')
         consolidated_df.index.name = None
         return consolidated_df
 

@@ -2,13 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f14f756e-ed65-49f4-8d64-b1174f2a42bd" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nm/export_data_from_pandas.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/export_data_from_pandas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nm/ml.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/ml.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nm/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/nm/util.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -27,8 +22,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nm/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="144">
-              <caret line="1157" column="53" lean-forward="true" selection-start-line="1157" selection-start-column="53" selection-end-line="1157" selection-end-column="53" />
+            <state relative-caret-position="156">
+              <caret line="1019" column="92" lean-forward="true" selection-start-line="1019" selection-start-column="92" selection-end-line="1019" selection-end-column="92" />
               <folding>
                 <element signature="e#452#573#0" />
                 <element signature="e#646#1558#0" />
@@ -198,7 +193,6 @@
                 <element signature="e#36062#36077#0" />
                 <element signature="e#36145#36188#0" />
                 <element signature="e#36268#36458#0" />
-                <element signature="e#36481#43008#0" />
                 <element signature="e#36536#36716#0" />
                 <element signature="e#36750#36780#0" />
                 <element signature="e#36813#36842#0" />
@@ -231,9 +225,6 @@
                 <element signature="e#41619#41770#0" />
                 <element signature="e#41811#41956#0" />
                 <element signature="e#42016#42054#0" />
-                <element signature="e#42130#42348#0" />
-                <element signature="e#42443#43008#0" />
-                <element signature="e#42678#42899#0" />
                 <element signature="e#43073#43514#0" />
                 <element signature="e#43356#43514#0" />
                 <element signature="e#43401#43514#0" />
@@ -252,9 +243,6 @@
                 <element signature="e#45991#46189#0" />
                 <element signature="e#46361#46609#0" />
                 <element signature="e#46452#46608#0" />
-                <element signature="e#46849#47435#0" />
-                <element signature="e#46887#47384#0" />
-                <element signature="e#49509#49780#0" />
                 <element signature="e#50151#61774#0" />
                 <element signature="e#50236#51077#0" />
                 <element signature="e#50505#50740#0" />
@@ -344,227 +332,12 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/internals/blocks.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="122">
-              <caret line="756" selection-start-line="756" selection-end-line="756" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/internals/managers.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="130">
-              <caret line="820" selection-start-line="820" selection-end-line="820" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/generic.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="259">
-              <caret line="5995" selection-start-line="5995" selection-end-line="5995" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/indexing.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="121">
-              <caret line="1811" selection-start-line="1811" selection-end-line="1811" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/apply.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="130">
-              <caret line="178" selection-start-line="178" selection-end-line="178" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/frame.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="115">
-              <caret line="7767" selection-start-line="7767" selection-end-line="7767" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/IPython/core/interactiveshell.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="122">
-              <caret line="3436" selection-start-line="3436" selection-end-line="3436" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nm/util.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="130">
-              <caret line="107" selection-start-line="107" selection-end-line="107" />
+            <state relative-caret-position="519">
+              <caret line="37" column="24" lean-forward="true" selection-start-line="37" selection-start-column="24" selection-end-line="37" selection-end-column="24" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/nm/ml.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="509">
-              <caret line="268" selection-start-line="263" selection-end-line="268" />
-              <folding>
-                <element signature="e#947#1111#0" />
-                <element signature="e#1178#1290#0" />
-                <element signature="e#1335#1498#0" />
-                <element signature="e#1542#2592#0" />
-                <element signature="e#1620#2086#0" />
-                <element signature="e#1989#2060#0" />
-                <element signature="e#2131#2217#0" />
-                <element signature="e#2297#2399#0" />
-                <element signature="e#2449#2592#0" />
-                <element signature="e#2638#3688#0" />
-                <element signature="e#2716#3182#0" />
-                <element signature="e#3085#3156#0" />
-                <element signature="e#3227#3313#0" />
-                <element signature="e#3393#3495#0" />
-                <element signature="e#3545#3688#0" />
-                <element signature="e#3725#3935#0" />
-                <element signature="e#3764#3841#0" />
-                <element signature="e#3965#4303#0" />
-                <element signature="e#4196#4288#0" />
-                <element signature="e#4332#8300#0" />
-                <element signature="e#4367#4424#0" />
-                <element signature="e#4613#4958#0" />
-                <element signature="e#4887#4958#0" />
-                <element signature="e#4988#5195#0" />
-                <element signature="e#5603#5966#0" />
-                <element signature="e#5611#5746#0" />
-                <element signature="e#5762#5966#0" />
-                <element signature="e#6075#6371#0" />
-                <element signature="e#6083#6210#0" />
-                <element signature="e#6226#6371#0" />
-                <element signature="e#6390#6455#0" />
-                <element signature="e#6691#7319#0" />
-                <element signature="e#6920#7104#0" />
-                <element signature="e#7506#7761#0" />
-                <element signature="e#7893#8260#0" />
-                <element signature="e#7933#8259#0" />
-                <element signature="e#7975#8147#0" />
-                <element signature="e#8320#8610#0" />
-                <element signature="e#8348#8448#0" />
-                <element signature="e#8498#8610#0" />
-                <element signature="e#8550#8610#0" />
-                <element signature="e#8722#8979#0" />
-                <element signature="e#9022#9255#0" />
-                <element signature="e#9114#9216#0" />
-                <element signature="e#9328#9689#0" />
-                <element signature="e#9438#9669#0" />
-                <element signature="e#9722#10065#0" />
-                <element signature="e#9808#10041#0" />
-                <element signature="e#10108#10245#0" />
-                <element signature="e#10152#10222#0" />
-                <element signature="e#10293#10630#0" />
-                <element signature="e#10332#10600#0" />
-                <element signature="e#10353#10461#0" />
-                <element signature="e#10678#10969#0" />
-                <element signature="e#10769#10867#0" />
-                <element signature="e#11019#11081#0" />
-                <element signature="e#11127#11202#0" />
-                <element signature="e#11247#11681#0" />
-                <element signature="e#11332#11595#0" />
-                <element signature="e#11339#11568#0" />
-                <element signature="e#11727#11746#0" />
-                <element signature="e#11792#12053#0" />
-                <element signature="e#11877#11963#0" />
-                <element signature="e#12109#12382#0" />
-                <element signature="e#12474#12608#0" />
-                <element signature="e#12668#13321#0" />
-                <element signature="e#12754#13295#0" />
-                <element signature="e#12802#13295#0" />
-                <element signature="e#13359#13666#0" />
-                <element signature="e#13390#13504#0" />
-                <element signature="e#13531#13638#0" />
-                <element signature="e#13718#13860#0" />
-                <element signature="e#13766#13860#0" />
-                <element signature="e#13911#14328#0" />
-                <element signature="e#13960#14302#0" />
-                <element signature="e#14019#14164#0" />
-                <element signature="e#14516#15079#0" />
-                <element signature="e#15180#16527#0" />
-                <element signature="e#15260#15428#0" />
-                <element signature="e#15615#16420#0" />
-                <element signature="e#15795#16323#0" />
-                <element signature="e#15928#16323#0" />
-                <element signature="e#16208#16323#0" />
-                <element signature="e#16587#17255#0" />
-                <element signature="e#16622#17229#0" />
-                <element signature="e#16730#17025#0" />
-                <element signature="e#16772#16901#0" />
-                <element signature="e#16843#16901#0" />
-                <element signature="e#16944#17025#0" />
-                <element signature="e#17152#17229#0" />
-                <element signature="e#17523#18691#0" />
-                <element signature="e#17869#17914#0" />
-                <element signature="e#18893#19785#0" />
-                <element signature="e#19406#19662#0" />
-                <element signature="e#19852#20271#0" />
-                <element signature="e#20013#20250#0" />
-                <element signature="e#20034#20182#0" />
-                <element signature="e#20344#20731#0" />
-                <element signature="e#20441#20709#0" />
-                <element signature="e#20462#20543#0" />
-                <element signature="e#20631#20709#0" />
-                <element signature="e#20802#21372#0" />
-                <element signature="e#20833#21198#0" />
-                <element signature="e#21073#21198#0" />
-                <element signature="e#21598#24425#0" />
-                <element signature="e#21676#21742#0" />
-                <element signature="e#21786#22099#0" />
-                <element signature="e#21825#21895#0" />
-                <element signature="e#21930#22099#0" />
-                <element signature="e#22024#22099#0" />
-                <element signature="e#22153#22801#0" />
-                <element signature="e#22854#23462#0" />
-                <element signature="e#23514#24197#0" />
-                <element signature="e#23596#23686#0" />
-                <element signature="e#23734#23901#0" />
-                <element signature="e#23862#23901#0" />
-                <element signature="e#23965#24003#0" />
-                <element signature="e#24038#24197#0" />
-                <element signature="e#24312#24425#0" />
-                <element signature="e#24483#24779#0" />
-                <element signature="e#24815#24843#0" />
-                <element signature="e#25062#29753#0" />
-                <element signature="e#25114#25353#0" />
-                <element signature="e#25260#25353#0" />
-                <element signature="e#25455#25583#0" />
-                <element signature="e#25677#25851#0" />
-                <element signature="e#25707#25850#0" />
-                <element signature="e#25893#26589#0" />
-                <element signature="e#26279#26486#0" />
-                <element signature="e#26314#26462#0" />
-                <element signature="e#26616#29116#0" />
-                <element signature="e#26757#26867#0" />
-                <element signature="e#26978#27696#0" />
-                <element signature="e#27394#27514#0" />
-                <element signature="e#27752#28577#0" />
-                <element signature="e#27820#28483#0" />
-                <element signature="e#28007#28297#0" />
-                <element signature="e#28630#28976#0" />
-                <element signature="e#28755#28929#0" />
-                <element signature="e#29011#29116#0" />
-                <element signature="e#29233#29663#0" />
               </folding>
             </state>
           </provider>
@@ -582,7 +355,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>nm_index_yield_for_period</find>
       <find>make_model</find>
       <find>features_imputation</find>
       <find>split</find>
@@ -612,6 +384,7 @@
       <find>get</find>
       <find>def get</find>
       <find>yield_simulation</find>
+      <find>simul</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -769,13 +542,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1616422167528</updated>
-    </task>
-    <task id="LOCAL-00013" summary="Back tester implementation in process">
-      <created>1616863687181</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1616863687181</updated>
     </task>
     <task id="LOCAL-00014" summary="Back tester implementation in process">
       <created>1616865111348</created>
@@ -1113,7 +879,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617842676591</updated>
     </task>
-    <option name="localTasksCounter" value="62" />
+    <task id="LOCAL-00062" summary="Working backtest class">
+      <created>1618156181892</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1618156181893</updated>
+    </task>
+    <option name="localTasksCounter" value="63" />
     <servers />
   </component>
   <component name="TodoView">
@@ -1200,7 +973,8 @@
     <MESSAGE value="First public version" />
     <MESSAGE value="Back tester implementation in process" />
     <MESSAGE value="ML module in implementation" />
-    <option name="LAST_COMMIT_MESSAGE" value="ML module in implementation" />
+    <MESSAGE value="Working backtest class" />
+    <option name="LAST_COMMIT_MESSAGE" value="Working backtest class" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1232,6 +1006,10 @@
       <configuration name="Python Console Debugger">
         <watch expression="coin_data.yield_for_coins(coins_for_date.index, date, date)" language="Python" />
         <watch expression="self.coin_data.yield_for_coins(coins_for_date,                                                                                          next_date(date, -1))" language="Python" />
+        <watch expression="pd.Timestamp(to_date)" language="Python" />
+        <watch expression="self.history[CLOSE_TIME].iloc[-1]" language="Python" />
+        <watch expression="(pd.Timestamp(to_date) - self.history[CLOSE_TIME].iloc[-1]) &lt; pd.Timedelta(360, 'minutes')" language="Python" />
+        <watch expression="pd.Timestamp(to_date) - self.history[CLOSE_TIME].iloc[-1] &gt; pd.Timedelta(360, 'minutes')" language="Python" />
       </configuration>
     </watches-manager>
   </component>
@@ -1245,6 +1023,16 @@
       </expression>
     </expressions>
     <expressions id="breakpointCondition">
+      <expression>
+        <expression-string>from_date == pd.Timestamp('20210410')</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>from_data == pd.Timestamp('20210410')</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>date &gt;= pd.Timestamp('20200101')</expression-string>
         <language-id>Python</language-id>
@@ -1278,52 +1066,47 @@
     </expressions>
     <expressions id="watch">
       <expression>
+        <expression-string>pd.Timestamp(to_date) - self.history[CLOSE_TIME].iloc[-1] &gt; pd.Timedelta(360, 'minutes')</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>pd.Timestamp(to_date) - self.history[CLOSE_TIME].iloc[-1]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>self.history[CLOSE_TIME                                                 ].iloc[-1] - pd.Timestamp(to_date)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>(pd.Timestamp(to_date) - self.history[CLOSE_TIME].iloc[-1]) &lt; pd.Timedelta(360, 'minutes')</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>(pd.Timestamp(to_date) - self.history[CLOSE_TIME].iloc[-1]) &lt; pd.Timedelta(260, 'minutes')</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>(pd.Timestamp(to_date) - self.history[CLOSE_TIME].iloc[-1])</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>self.history[CLOSE_TIME].iloc[-1]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>pd.Timestamp(to_date)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
         <expression-string>self.coin_data.yield_for_coins(coins_for_date,                                                                                          next_date(date, -1))</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_data.yield_for_coins(coins_for_date.index, date, date)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_data.yield_for_coins(coins_for_date.index, next_date(date), next_date(date))</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_data.yield_for_coins(coins_for_date.index[1:2], next_date(date), next_date(date))</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_data.yield_for_coins(coins_for_date.index[:1], next_date(date), next_date(date))</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_data.yield_for_coins(coins_for_date.index[:1], date, date)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_data.yield_for_coins(coins_for_date.index[0], date, date)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_data.yield_for_coins(coins_for_date.index, next_date(date, -1), date)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_data.yield_for_coins(coins_for_date.index, next_date(date, -1), next_date(date))</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>coin_data.yield_for_coins(coins_for_date.index, date, next_date(date))</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -1467,13 +1250,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="6">
           <caret line="216" selection-start-line="216" selection-end-line="216" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/indexes/base.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="303">
-          <caret line="3081" selection-start-line="3081" selection-end-line="3081" />
         </state>
       </provider>
     </entry>
@@ -1728,16 +1504,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/nm/util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="130">
-          <caret line="107" selection-start-line="107" selection-end-line="107" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/apply.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="130">
@@ -1780,10 +1546,27 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/Documents/PycharmProjects/NM_rebalance/venv/lib/python3.8/site-packages/pandas/core/indexes/base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="303">
+          <caret line="4743" selection-start-line="4743" selection-end-line="4743" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nm/util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="519">
+          <caret line="37" column="24" lean-forward="true" selection-start-line="37" selection-start-column="24" selection-end-line="37" selection-end-column="24" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/nm/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="1157" column="53" lean-forward="true" selection-start-line="1157" selection-start-column="53" selection-end-line="1157" selection-end-column="53" />
+        <state relative-caret-position="156">
+          <caret line="1019" column="92" lean-forward="true" selection-start-line="1019" selection-start-column="92" selection-end-line="1019" selection-end-column="92" />
           <folding>
             <element signature="e#452#573#0" />
             <element signature="e#646#1558#0" />
@@ -1953,7 +1736,6 @@
             <element signature="e#36062#36077#0" />
             <element signature="e#36145#36188#0" />
             <element signature="e#36268#36458#0" />
-            <element signature="e#36481#43008#0" />
             <element signature="e#36536#36716#0" />
             <element signature="e#36750#36780#0" />
             <element signature="e#36813#36842#0" />
@@ -1986,9 +1768,6 @@
             <element signature="e#41619#41770#0" />
             <element signature="e#41811#41956#0" />
             <element signature="e#42016#42054#0" />
-            <element signature="e#42130#42348#0" />
-            <element signature="e#42443#43008#0" />
-            <element signature="e#42678#42899#0" />
             <element signature="e#43073#43514#0" />
             <element signature="e#43356#43514#0" />
             <element signature="e#43401#43514#0" />
@@ -2007,9 +1786,6 @@
             <element signature="e#45991#46189#0" />
             <element signature="e#46361#46609#0" />
             <element signature="e#46452#46608#0" />
-            <element signature="e#46849#47435#0" />
-            <element signature="e#46887#47384#0" />
-            <element signature="e#49509#49780#0" />
             <element signature="e#50151#61774#0" />
             <element signature="e#50236#51077#0" />
             <element signature="e#50505#50740#0" />
