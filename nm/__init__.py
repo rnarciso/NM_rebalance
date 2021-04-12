@@ -7,7 +7,7 @@ from tqdm import tqdm
 from functools import partial
 # noinspection PyPackageRequirements
 from binance.client import Client
-from collections.abc import Collection
+from collections.abc import Collection, Iterable
 from itertools import permutations, combinations
 # noinspection PyPackageRequirements
 from binance.exceptions import BinanceAPIException
@@ -31,9 +31,9 @@ def adjust(from_date, to_date, default_date=None):
         from_date = next_date(from_date)
     else:
         from_date = tz_remove_and_normalize(from_date)
-    if tz_remove_and_normalize(from_date) < tz_remove_and_normalize(pd.Timestamp.now('utc')):
+    if tz_remove_and_normalize(from_date) < tz_remove_and_normalize('utc'):
         if to_date is None:
-            to_date = tz_remove_and_normalize(pd.Timestamp.now('utc'))
+            to_date = tz_remove_and_normalize('utc')
         elif isinstance(to_date, int):
             to_date = next_date(from_date, to_date)
         else:
@@ -90,8 +90,8 @@ class Portfolio:
     @property
     def time_offset(self):
         if self._time_offset == 0:
-            time_offset = pd.Timestamp.now('utc') - pd.Timestamp(
-                    self._client.get_server_time().get("serverTime") * 10 ** 6).tz_localize('utc')
+            time_offset = tz_remove_and_normalize('utc') - tz_remove_and_normalize(
+                    pd.Timestamp(self._client.get_server_time().get("serverTime") * 10 ** 6))
             self._time_offset = math.ceil(abs(time_offset.value) / 10 ** 6) + MINIMUM_TIME_OFFSET
         return self._time_offset
 
@@ -660,6 +660,25 @@ class Deposits:
     def __str__(self):
         return self._data.__str__()
 
+    def __getattr__(self, attr):
+        if attr[0] != '_' and not hasattr(super(), attr) and hasattr(self.df, attr):
+            setattr(self, attr, getattr(self.df, attr))
+            return getattr(self, attr)
+        else:
+            super().__getattribute__(attr)
+
+    def __setitem__(self, key, value):
+        if not hasattr(super(), key) and hasattr(self.df, key):
+            setattr(self._df, key, value)
+        else:
+            super().__setattr__(key, value)
+
+    def __getitem__(self, item):
+        if item in self.df.keys():
+            return self.df[item]
+        else:
+            raise KeyError
+
     @property
     def binance_api(self):
         if self._binance_api is None:
@@ -951,7 +970,7 @@ class CoinData:
                 assets = DEFAULT_COINS_IN_HISTORY_DATA
         from_date, to_date = adjust(from_date, to_date, pd.Timestamp(EXCHANGE_OPENING_DATE))
         if from_date == to_date:
-            to_date = tz_remove_and_normalize(pd.Timestamp.now('utc'))
+            to_date = tz_remove_and_normalize('utc')
         symbols = [i.get('symbol') for i in self.binance_api.get_all_tickers()]
         for asset in tqdm(assets):
             try:
@@ -994,7 +1013,7 @@ class CoinData:
             except ValueError:
                 assets = [assets]
         if date is None:
-            date = tz_remove_and_normalize(pd.Timestamp.now('utc'))
+            date = tz_remove_and_normalize('utc')
             if assets is None:
                 assets = self.assets
         else:
@@ -1017,8 +1036,15 @@ class CoinData:
         return df.iloc[-1]['Close'] / df.iloc[0]['Close'] - 1
 
     def need_update(self, coin, to_date):
-        if to_date is not None and pd.Timestamp(to_date) - self.history[CLOSE_TIME].iloc[-1] > pd.Timedelta(1, 'day'):
-            self.update([coin])
+        if isinstance(coin, Iterable) and not isinstance(coin, str):
+            for coin in tuple(coin):
+                self.need_update(coin, to_date)
+            return
+        elif to_date is not None:
+            df_for_coin = self.history[self.history[SYMBOL] == coin]
+            if (len(df_for_coin) > 0 and tz_remove_and_normalize('utc') > tz_remove_and_normalize(to_date) >
+                df_for_coin[CLOSE_TIME].max() + pd.Timedelta(1, 'day')):
+                self.update([coin])
 
     def yield_for_coins(self, coins, from_date=None, to_date=None, return_df=False):
         if to_date is None:
@@ -1077,7 +1103,7 @@ class Backtest:
         last_coins = []
         from_date = tz_remove_and_normalize(from_date)
         if to_date is None:
-            to_date = tz_remove_and_normalize(pd.Timestamp.now('utc'))
+            to_date = tz_remove_and_normalize('utc')
         elif isinstance(to_date, int):
             to_date = next_date(from_date, to_date)
         accrued_yield = 0
@@ -1122,63 +1148,82 @@ class Backtest:
 
     def yield_simulation(self, contributions: Deposits, to_date=None, fees=True, slippage=AVG_SLIPPAGE, top_n=4,
                          fee_type='taker', interval=1):
-        # noinspection PyShadowingNames
-        def coin_yield(row):
-            try:
-                date = row.date
-                coin_name = row.name
-                coin_data = readable_kline(self.binance_api.get_historical_klines(f'{coin_name}{QUOTE_ASSET}',
-                                                                                  Client.KLINE_INTERVAL_1DAY,
-                                                                                  date.strftime('%Y-%m-%d'),
-                                                                                  date.strftime('%Y-%m-%d'))).iloc[0]
-                return coin_data['Close'] / coin_data['Open'] - 1
-            except Exception as e:
-                logging.error(e)
-
         dfs = {}
         for nm in sorted(contributions.df.NM.unique()):
             dfs[nm] = pd.DataFrame()
             min_date = next_date(contributions.df[contributions.df.NM == nm].index.min(), -1)
-            if to_date is None:
-                to_date = tz_remove_and_normalize('now')
-            else:
-                to_date = pd.Timestamp(to_date)
+            to_date = self.default_to_date(to_date)
             value = 0
             last_set_of_coins = set()
             nmdf = dfs[nm]
             for date in tqdm(pd.date_range(min_date, to_date, freq=f'{interval}D')):
-                nmdf.loc[date, 'open'] = value
-                if next_date(date) in contributions.df[contributions.df['NM'] == nm].index:
-                    nmdf.loc[date, 'contribution'] = contributions.df.loc[next_date(date), 'Quote Value']
-                    value += contributions.df.loc[next_date(date), 'Quote Value']
-                else:
-                    nmdf.loc[date, 'contribution'] = 0
-                # noinspection PyBroadException
-                try:
-                    coins_for_date = self.advisor.get(nm, date)[:top_n]
-                    if len(coins_for_date) > 0:
-                        coins_for_date['date'] = date
-                        nmdf.loc[date, f'NM{nm} yield'] = self.coin_data.yield_for_coins(
-                                coins_for_date.index, from_date=date, to_date=next_date(date, interval - 1))
-                        nmdf.loc[date, f'NM{nm} coins'] = ','.join(coins_for_date.index)
-                        value = value * (1 + nmdf.loc[date, f'NM{nm} yield'])
-                        nmdf.loc[date, 'close'] = value
-                        new_coins = set(coins_for_date.index).difference(last_set_of_coins)
-                        if fees and len(new_coins) > 0:
-                            value *= (1 - self.binance_api.fees[self.binance_api.fees.index.isin(
-                                    [f'{coin_name}{QUOTE_ASSET}' for coin_name in new_coins])][fee_type].mean()
-                                      * (2 if date > min_date else 1) * (len(new_coins) / top_n))
-                        if slippage is not None and len(new_coins) > 0:
-                            value *= (1 - slippage * (2 if date > min_date else 1) * (len(new_coins) / top_n))
-                        last_set_of_coins = set(coins_for_date.index)
-                        nmdf.loc[date, 'adjusted close'] = value
-                except Exception as e:
-                    logging.error(f'\n{e}, while processing data for {date.date()}.')
+                if to_date <= tz_remove_and_normalize('utc'):
+                    nmdf.loc[date, OPEN] = value
+                    if next_date(date) in contributions.df[contributions.df['NM'] == nm].index:
+                        nmdf.loc[date, DEPOSIT] = contributions.df.loc[next_date(date), QUOTE_VALUE]
+                        value += contributions.df.loc[next_date(date), QUOTE_VALUE]
+                    else:
+                        nmdf.loc[date, DEPOSIT] = 0
+                    # noinspection PyBroadException
+                    try:
+                        coins_for_date = self.advisor.get(nm, date)[:top_n]
+                        if len(coins_for_date) > 0:
+                            coins_for_date[DATE] = date
+                            nmdf.loc[date, f'NM{nm} {YIELD}'] = self.coin_data.yield_for_coins(
+                                    coins_for_date.index, from_date=date, to_date=next_date(date, interval - 1))
+                            nmdf.loc[date, f'NM{nm} coins'] = ','.join(coins_for_date.index)
+                            value = value * (1 + nmdf.loc[date, f'NM{nm} {YIELD}'])
+                            nmdf.loc[date, CLOSE] = value
+                            new_coins = set(coins_for_date.index).difference(last_set_of_coins)
+                            if fees and len(new_coins) > 0:
+                                value *= (1 - self.binance_api.fees[self.binance_api.fees.index.isin(
+                                        [f'{coin_name}{QUOTE_ASSET}' for coin_name in new_coins])][fee_type].mean()
+                                          * (2 if date > min_date else 1) * (len(new_coins) / top_n))
+                            if slippage is not None and len(new_coins) > 0:
+                                value *= (1 - slippage * (2 if date > min_date else 1) * (len(new_coins) / top_n))
+                            last_set_of_coins = set(coins_for_date.index)
+                            nmdf.loc[date, ADJUSTED_CLOSE] = value
+                    except Exception as e:
+                        logging.error(f'\n{e}, while processing data for {date.date()}.')
 
         consolidated_df = pd.concat(dfs.values()).reset_index().groupby('index').sum()
         consolidated_df.index = consolidated_df.index.shift(1, freq='D')
         consolidated_df.index.name = None
         return consolidated_df
+
+    @staticmethod
+    def default_to_date(to_date):
+        if to_date is None:
+            to_date = tz_remove_and_normalize('utc')
+        else:
+            to_date = pd.Timestamp(to_date)
+        return to_date
+
+    def yield_simulation2(self, deposits: Deposits, to_date=None, fees=True, slippage=AVG_SLIPPAGE, top_n=4,
+                         fee_type='taker', interval=1):
+
+        def add_deposits(row):
+            dfs.setdefault(row['NM'], pd.DataFrame()).loc[row.name, DEPOSIT] = row[QUOTE_VALUE]
+
+        def add_yield(row):
+            date = row.name
+            date = next_date(date, - 1)
+            to_date = row.to_date
+            coins = tuple(self.advisor.get(nm, date).index[:top_n])
+            row[f'NM{nm} {YIELD}'] = self.coin_data.yield_for_coins(coins, date, next_date(to_date, interval - 1))
+            row[f'NM{nm} coins'] = ','.join(coins)
+            return row
+
+        dfs = {}
+        to_date = self.default_to_date(to_date)
+        deposits.apply(add_deposits, axis=1)
+        for nm in dfs.keys():
+            dfs[nm] = pd.concat([dfs[nm], pd.DataFrame(index=pd.date_range(start=dfs[nm].index.min(),
+                                end=to_date, freq=f'{interval}D', closed='right'))]).fillna(0)
+            dfs[nm]['to_date'] = dfs[nm].index
+            dfs[nm]['to_date'] = dfs[nm]['to_date'].shift(-1)
+            dfs[nm] = dfs[nm].progress_apply(add_yield, axis=1)
+            dfs[nm][OPEN] = 0
 
 
 class NMData:
@@ -1323,34 +1368,54 @@ class NMData:
     def to_numeric(self):
         self.df = self.df.applymap(partial(pd.to_numeric, errors='ignore'))
 
-    def get(self, index=1, date='now'):
+    def get(self, index=1, date='utc'):
         date = next_date(date, -1)
         columns = [SYMBOL, f'NM{index}']
         if 'date' in self.df.columns:
             self.df = self.df.set_index('date')
-        return self.df.sort_index().loc[date.strftime('%Y%m%d'):date.strftime('%Y%m%d')][
-                                             columns].set_index(SYMBOL).sort_values(f'NM{index}', ascending=False)
+        retries = 3
+        while retries > 0:
+            retries -= 1
+            try:
+                nm_for_date = self.df.sort_index().loc[date.strftime('%Y%m%d')]
+            except KeyError:
+                nm_for_date = pd.DataFrame()
+            if len(nm_for_date) < 1:
+                if len(self.get_nm_data()) > 0:
+                    continue
+                else:
+                    break
+            else:
+                return nm_for_date[columns].set_index(SYMBOL).sort_values(f'NM{index}', ascending=False)
+        raise IndexError
 
     def get_nm_data(self, url=None):
         if url is None:
             url = self._nm_url
-        if self.df is None:
-            df = pd.DataFrame()
+        if self.df is not None:
+            max_date = self.df.index.max()
         else:
-            df = self.df
-
-        for i in range(1, 5):
-            mndf = pd.read_html(url + str(i), decimal=',', thousands='.')[0]
-            mndf['date'] = pd.to_datetime(mndf.iloc[-1][0].replace(UPDATED_ON, '').replace(AT_SIGN, ' '), dayfirst=True)
-            mndf.columns = NM_COLUMNS
-            mndf = mndf.drop(index=[0, 1, mndf.index.max()])
-            df = df.append(mndf)
-        df.index = pd.RangeIndex(len(df))
-        self.df = df
-        self.to_numeric()
-        self.drop_duplicates()
-        if self.filename is not None and len(self.df) > 0:
-            self.save()
+            max_date = tz_remove_and_normalize(EXCHANGE_OPENING_DATE)
+        df = pd.DataFrame()
+        for i in range(1, NM_MAX+1):
+            try:
+                mndf = pd.read_html(url + str(i), decimal=',', thousands='.')[0]
+                date = pd.to_datetime(mndf.iloc[-1][0].replace(UPDATED_ON, '').replace(AT_SIGN, ' '), dayfirst=True)
+                if date > max_date:
+                    mndf['date'] = date
+                    mndf.columns = NM_COLUMNS
+                    mndf = mndf.drop(index=[0, 1, mndf.index.max()], columns=['price'])
+                    mndf = mndf.applymap(partial(pd.to_numeric, errors='ignore'))
+                    df = df.append(mndf)
+                else:
+                    return pd.DataFrame()
+            except Exception as e:
+                logging.error(e)
+        df = df.drop_duplicates()
+        if len(df) > 0:
+            self._df = pd.concat([self.df, df.set_index('date')])
+            if self.filename is not None and len(self.df) > 0:
+                self.save()
         return self.df
 
     def drop_duplicates(self):

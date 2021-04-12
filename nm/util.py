@@ -11,6 +11,7 @@ else:
     import pickle
 
 AT_SIGN = ' às '
+ADJUSTED_CLOSE = 'adjusted close'
 AVG_SLIPPAGE = 0.0045755
 CLOSE = 'Close'
 CLOSE_TIME = 'Close time'
@@ -18,6 +19,7 @@ COIN_MARKET_COLUMNS = ['volume_24h', 'percent_change_1h', 'percent_change_24h', 
 COIN_HISTORY_FILE = 'history.dat'
 DATE = 'date'
 DEFAULT_COINS_IN_HISTORY_DATA = ['BTC']
+DEPOSIT = 'deposit'
 DIFF = 'diff'
 EXCHANGE_OPENING_DATE = '17 Aug, 2017'
 KEYFILE = '.keys'
@@ -35,6 +37,7 @@ OPEN_TIME = 'Open time'
 ORDER_AMOUNT_REDUCING_FACTOR = 5 / 100
 PICKLE_PROTOCOL = 5
 QUOTE_ASSET = 'USDT'
+QUOTE_VALUE = 'Quote Value'
 RISK_FREE_DAILY_IRATE = 0.0001596535874
 SINCE = '20191231'
 SYMBOL = 'symbol'
@@ -105,7 +108,7 @@ def make_bak_file(datafile):
 
 
 def next_date(date, days=1):
-    return pd.Timestamp(date) + pd.Timedelta(days, 'days')
+    return tz_remove_and_normalize(date) + pd.Timedelta(days, 'days')
 
 
 def readable_kline(klines):
@@ -132,13 +135,15 @@ def readable_kline(klines):
 
 
 def tz_remove_and_normalize(date):
+    if date == 'utc':
+        return pd.Timestamp.now('utc').normalize().tz_convert(None)
     try:
         try:
             return pd.Timestamp(date).normalize().tz_convert(None)
         except TypeError:
             return pd.Timestamp(date).normalize()
     except ValueError:
-        return tz_remove_and_normalize('now')
+        return tz_remove_and_normalize('utc')
 
 
 def trim_run(method, *args, **kwargs):

@@ -5,6 +5,7 @@ import getopt
 import logging
 import pandas as pd
 from nm import NMData, Portfolio
+from nm.util import tz_remove_and_normalize
 from config import nm_url, nm_data_file
 from config import RETRIES as DEFAULT_RETRIES
 from config import accounts as account_config
@@ -25,7 +26,7 @@ def rebalance(argv):
             force_first_rebalance = True
     nm_data = NMData(nm_url, datafile=nm_data_file)
     retries = DEFAULT_RETRIES
-    if (pd.Timestamp.now('utc') - nm_data.last_update.tz_convert('utc')).seconds // 60 > max(
+    if (tz_remove_and_normalize('utc') - tz_remove_and_normalize(nm_data.last_update)).seconds // 60 > max(
             [a.get('rebalance_interval', 24 * 60) for a in account_config]):
         while retries > 0:
             try:
@@ -41,14 +42,14 @@ def rebalance(argv):
     logging.info('Connecting to configured Binance account(s)...')
     for account in account_config:
         account['portfolio'] = Portfolio(config=account)
-        account['last_update'] = nm_data.last_update.tz_convert('utc')
+        account['last_update'] = tz_remove_and_normalize(nm_data.last_update)
         account['force_first_rebalance'] = force_first_rebalance
     rebalancing_completed = False
     first_run = True
     while True:
         for account in account_config:
             try:
-                if pd.Timestamp.now('utc') - account['last_update'] > pd.Timedelta(
+                if tz_remove_and_normalize('utc') - account['last_update'] > pd.Timedelta(
                         account['rebalance_interval'], 'minutes') or account['force_first_rebalance']:
                     logging.info(f"Rebalancing account: {account['account_name']}")
                     first_run = False
@@ -82,7 +83,7 @@ def rebalance(argv):
                                 logging.info('Rebalancing...')
                                 account['portfolio'].rebalance(orders)
                                 account['portfolio'].refresh_balance()
-                                account['last_update'] = nm_data.last_update.tz_convert('utc')
+                                account['last_update'] = tz_remove_and_normalize(nm_data.last_update)
                                 retries -= 1
                             else:
                                 logging.info(f"\nProposed orders:\n{orders}")
@@ -91,7 +92,7 @@ def rebalance(argv):
                 elif first_run:
                     logging.info('Waiting next rebalance for account "{0}" in {1} minutes.'.format(
                             account['account_name'], ((account['last_update'] + pd.Timedelta(account[
-                            'rebalance_interval'], 'minutes')) - pd.Timestamp.now('utc')).seconds//60))
+                            'rebalance_interval'], 'minutes')) - tz_remove_and_normalize('utc')).seconds//60))
             except Exception as e:
                 logging.error(e)
         else:
