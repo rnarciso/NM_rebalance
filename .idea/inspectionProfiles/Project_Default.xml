@@ -554,6 +554,10 @@
           <option value="config.ta_file" />
           <option value="deap.creator.Individual" />
           <option value="typing.Iterable.__getitem__" />
+          <option value="config.ml_models" />
+          <option value="config.fees_file" />
+          <option value="config.nm_data_file" />
+          <option value="config.info_file" />
         </list>
       </option>
     </inspection_tool>

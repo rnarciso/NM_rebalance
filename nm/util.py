@@ -3,26 +3,39 @@ import sys
 import math
 import logging
 import pandas as pd
+from tqdm import tqdm
 from functools import reduce
+from time import time as systime
 
 if sys.version_info[:3] > (3, 7):
     import pickle5 as pickle
 else:
     import pickle
 
+# noinspection PyBroadException
+try:
+    # noinspection PyPep8Naming
+    from config import data_files_path as DATA_FOLDER
+except Exception as e:
+    DATA_FOLDER = ''
+
 AT_SIGN = ' às '
-ADJUSTED_CLOSE = 'adjusted close'
-AVG_SLIPPAGE = 0.0045755
+ADJUSTED_CLOSE = 'Adjusted close'
+AVG_SLIPPAGE = 1.1641814/100
 CLOSE = 'Close'
 CLOSE_TIME = 'Close time'
 COIN_MARKET_COLUMNS = ['volume_24h', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'market_cap']
-COIN_HISTORY_FILE = 'history.dat'
+COIN_HISTORY_FILE = os.path.join(DATA_FOLDER, 'history.dat')
 DATE = 'date'
 DEFAULT_COINS_IN_HISTORY_DATA = ['BTC']
-DEPOSIT = 'deposit'
+DEPOSIT = 'Deposit'
 DIFF = 'diff'
 EXCHANGE_OPENING_DATE = '17 Aug, 2017'
+FEES = 'Fees'
+FEES_DATA_FILE = os.path.join(DATA_FOLDER, 'fees.dat')
 KEYFILE = '.keys'
+INFOFILE = os.path.join(DATA_FOLDER, 'info.dat')
+
 MAKER_PREMIUM = 0.1 / 100
 MINIMUM_TIME_OFFSET = 2000
 NM_COLUMNS = ['symbol', 'price', 'NM1', 'NM2', 'NM3', 'NM4', 'date']
@@ -31,7 +44,7 @@ NM_TIME_ZONE = 'Brazil/East'
 NM2_RANGE = 17
 NM4_RANGE = 20
 NM_REPORT_DEFAULT_URL = 'http://127.0.0.1/nmREPORT.asp?NM='
-NMDATA_FILE = 'nm_index.dat'
+NMDATA_FILE = os.path.join(DATA_FOLDER, 'nm_index.dat')
 OPEN = 'Open'
 OPEN_TIME = 'Open time'
 ORDER_AMOUNT_REDUCING_FACTOR = 5 / 100
@@ -40,18 +53,53 @@ QUOTE_ASSET = 'USDT'
 QUOTE_VALUE = 'Quote Value'
 RISK_FREE_DAILY_IRATE = 0.0001596535874
 SINCE = '20191231'
+SLIPPAGE = 'Slippage'
+STATEMENT_FILE = os.path.join(DATA_FOLDER, 'statement.dat')
 SYMBOL = 'symbol'
-STATEMENT_FILE = 'statement.dat'
 UPDATED = 'atualizado'
 UPDATED_ON: str = f'{UPDATED} em'
-TA_DATA_FILE = 'ta_data.dat'
+TA_DATA_FILE = os.path.join(DATA_FOLDER, 'ta_data.dat')
+TO_DATE = 'to_date'
 TOP_N_MAX = 4
 YIELD = 'yield'
-YIELD_FILE = 'yield.dat'
+YIELD_FILE = os.path.join(DATA_FOLDER, 'yield.dat')
 
 # Following constants are imported from Client later on
-SIDE_SELL, SIDE_BUY, TIME_IN_FORCE_GTC, ORDER_STATUS_FILLED, ORDER_TYPE_LIMIT, ORDER_TYPE_LIMIT_MAKER, \
-    ORDER_TYPE_MARKET = [None]*7
+SIDE_SELL, SIDE_BUY, TIME_IN_FORCE_GTC, TIME_IN_FORCE_IOC, ORDER_STATUS_FILLED, ORDER_TYPE_LIMIT, \
+    ORDER_TYPE_LIMIT_MAKER, ORDER_TYPE_MARKET = [None]*8
+
+
+def adjust(from_date, to_date, default_date=None):
+    if from_date is None:
+        try:
+            from_date = default_date
+            if pd.Timestamp(from_date) is pd.NaT:
+                raise ValueError
+        except ValueError:
+            from_date = SINCE
+        from_date = next_date(from_date)
+    else:
+        from_date = tz_remove_and_normalize(from_date)
+    if tz_remove_and_normalize(from_date) < tz_remove_and_normalize('utc'):
+        if to_date is None:
+            to_date = tz_remove_and_normalize('utc')
+        elif isinstance(to_date, int):
+            to_date = next_date(from_date, to_date)
+        else:
+            to_date = next_date(to_date)
+        if to_date < from_date:
+            date = to_date
+            to_date = from_date
+            from_date = date
+        from_date = tz_remove_and_normalize(from_date)
+        to_date = tz_remove_and_normalize(to_date)
+    return from_date, to_date
+
+
+def data_frame_decimal_convert(nmdf):
+    nmdf[nmdf.columns[0]] = pd.to_datetime(nmdf[nmdf.columns[0]], dayfirst=True)
+    nmdf[nmdf.columns[1]] = pd.to_numeric(nmdf[nmdf.columns[1]].str.replace('%', '').str.replace(',', '.'))
+    return nmdf.rename({nmdf.columns[0]: 'date', nmdf.columns[1]: 'yield'}, axis='columns').set_index('date')
 
 
 def downgrade_pickle(filename):
@@ -81,13 +129,14 @@ def is_serializable(obj):
     try:
         pickle.loads(pickle.dumps(obj))
         return True
-    except:
+    except Exception:
         return False
 
 
 def safe_save(self, datafile=None) -> bool:
     if datafile is None and hasattr(self, 'filename'):
         datafile = getattr(self, 'filename')
+    # noinspection PyShadowingNames
     try:
         make_bak_file(datafile)
         if hasattr(self, 'to_pickle'):
@@ -166,3 +215,10 @@ def trim_run(method, *args, **kwargs):
     kwargs = {k: kwargs.get(k.lower()) for k in method_params if k.lower() in kwargs.keys()}
 
     return method(*args, **kwargs)
+
+
+def patch_time(offset):
+    return systime() + offset
+
+
+tqdm.pandas()

@@ -4,9 +4,8 @@ import time
 import getopt
 import logging
 import pandas as pd
-from nm import NMData, Portfolio
+from nm import NMData, BinanceAccount, Rebalance
 from nm.util import tz_remove_and_normalize
-from config import nm_url, nm_data_file
 from config import RETRIES as DEFAULT_RETRIES
 from config import accounts as account_config
 
@@ -18,13 +17,13 @@ def rebalance(argv):
     for opt, arg in opts:
         if opt == '-h':
             print('Usage: rebalance [--force] --dry_run')
-            quit()
+            return
         elif opt in ('-f', '--force'):
             force_first_rebalance = True
         elif opt in ('-d', '--dry_run'):
             dry_run = True
             force_first_rebalance = True
-    nm_data = NMData(nm_url, datafile=nm_data_file)
+    nm_data = NMData()
     retries = DEFAULT_RETRIES
     if (tz_remove_and_normalize('utc') - tz_remove_and_normalize(nm_data.last_update)).seconds // 60 > max(
             [a.get('rebalance_interval', 24 * 60) for a in account_config]):
@@ -38,10 +37,10 @@ def rebalance(argv):
                 retries -= 1
         else:
             logging.error('Unable to read NM index table. Aborting...')
-            quit(-1)
+            exit(-1)
     logging.info('Connecting to configured Binance account(s)...')
     for account in account_config:
-        account['portfolio'] = Portfolio(config=account)
+        account['portfolio'] = BinanceAccount(config=account)
         account['last_update'] = tz_remove_and_normalize(nm_data.last_update)
         account['force_first_rebalance'] = force_first_rebalance
     rebalancing_completed = False
@@ -71,24 +70,30 @@ def rebalance(argv):
                     logging.info(f"Target NM data for NM{account['index']}: {target}.")
                     retries = DEFAULT_RETRIES
                     while retries > 0:
-                        logging.info(f'Setting up orders for rebalancing. Attempt # {DEFAULT_RETRIES - retries + 1}')
-                        orders = account['portfolio'].rebalanced_portfolio_proposal(target)
-                        if len(orders) < 1:
-                            logging.info(f"No more orders, NM{account['index']} portfolio already rebalanced!!!")
+                        if account['portfolio'].balance['USDT Value'].sum() >= 10:
                             print(f"\nCurrent balance:\n{account['portfolio'].balance}\n")
-                            rebalancing_completed = True
-                            break
-                        else:
-                            if not dry_run:
-                                logging.info('Rebalancing...')
-                                account['portfolio'].rebalance(orders)
-                                account['portfolio'].refresh_balance()
-                                account['last_update'] = tz_remove_and_normalize(nm_data.last_update)
-                                retries -= 1
-                            else:
-                                logging.info(f"\nProposed orders:\n{orders}")
+                            logging.info(f'Setting up orders for rebalancing. Attempt # '
+                                         f'{DEFAULT_RETRIES - retries + 1}')
+                            orders = Rebalance(account['portfolio']).create_orders(target)
+                            if len(orders) < 1:
+                                logging.info(f"No more orders, NM{account['index']} portfolio already rebalanced!!!")
                                 rebalancing_completed = True
                                 break
+                            else:
+                                if not dry_run:
+                                    logging.info('Rebalancing...')
+                                    Rebalance(account['portfolio']).rebalance(orders)
+                                    account['portfolio'].refresh_balance()
+                                    account['last_update'] = tz_remove_and_normalize(nm_data.last_update)
+                                    retries -= 1
+                                else:
+                                    logging.info(f"\nProposed orders:\n{orders}")
+                                    rebalancing_completed = True
+                                    break
+                        else:
+                            print('Nothing to rebalance on this account.')
+                            rebalancing_completed = True
+                            break
                 elif first_run:
                     logging.info('Waiting next rebalance for account "{0}" in {1} minutes.'.format(
                             account['account_name'], ((account['last_update'] + pd.Timedelta(account[
@@ -99,8 +104,12 @@ def rebalance(argv):
             if rebalancing_completed:
                 print("Rebalancing complete for all configured portfolios!")
                 if dry_run:
-                    quit(0)
-                print(f"Next rebalance in {account['rebalance_interval']} minutes.")
+                    return
+                try:
+                    # noinspection PyUnboundLocalVariable
+                    print(f"Next rebalance in {account['rebalance_interval']} minutes.")
+                except NameError:
+                    pass
                 print("Press Ctrl-C to exit!")
                 rebalancing_completed = False
         time.sleep(60)
