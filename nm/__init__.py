@@ -1309,10 +1309,10 @@ class Rebalance:
 
         self.nm_data = NMData()
         self.fees = Fees()
-        self.set_attributes_from_config(**kwargs)
         self.market_orders = True
         self.running_in_subaccount = True
         self.top_n = 4
+        self.set_attributes_from_config(**kwargs)
 
     @property
     def nm_index(self):
@@ -1320,6 +1320,14 @@ class Rebalance:
 
     def trim_target(self, target):
         # TODO adjust target to simple list
+        if isinstance(target, dict):
+            if all([isinstance(k, int) for k in target.keys()]):
+                target = pd.DataFrame({index: {coin: percentage / self.top_n
+                    for coin in self.nm_data.get(index).index[:self.top_n]} for index, percentage in
+                    target.items()}).T.sum().to_dict()
+            else:
+                total = sum(target.values())
+                target = {k: v / total for k, v in target.items()}
         return target
 
     def create_orders(self, target=None, market_orders=None):
@@ -1340,7 +1348,13 @@ class Rebalance:
         avg_prices = {coin: float(self.account.get_avg_price(symbol=f'{coin}{QUOTE_ASSET}').get('price', 1))
                       if coin != QUOTE_ASSET else 1.0
                       for coin in tqdm(assets, desc='Retrieving average prices for assets')}
-        target_amounts = {coin: (quote_value / self.top_n) / float(avg_prices[coin]) for coin in target}
+        if isinstance(target, dict):
+            target_amounts = {coin: (quote_value * ((share/100) if share > 1 else share)) / avg_prices[coin]
+                              for coin, share in target.items()}
+        elif isinstance(target, Iterable):
+            target_amounts = {coin: (quote_value / self.top_n) / float(avg_prices[coin]) for coin in target}
+        else:
+            logging.error(' Target portfolio must be either an iterable or a dictionary!')
         raw_orders = {coin: target_amounts.get(coin, 0) - balance['Amount'].get(coin, 0) for coin in set(
                       balance.index).union(target_amounts.keys())}
         raw_orders = pd.DataFrame(pd.Series(raw_orders, name='Amount'))

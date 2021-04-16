@@ -66,8 +66,14 @@ def rebalance(argv):
                         except Exception as e:
                             logging.error(e)
                             nm_retries -= 1
-                    target = nm_data.get(account['index'])[:account['top_n']].index.values
-                    logging.info(f"Target NM data for NM{account['index']}: {target}.")
+                    if 'distribution' in account.keys():
+                        target = account['distribution']
+                        logging.info(f"Target distribution {target}.")
+                        target = Rebalance(account['portfolio']).trim_target(target)
+                        logging.info(f'{target} based on NM index for today.')
+                    else:
+                        target = nm_data.get(account['index'])[:account['top_n']].index.values
+                        logging.info(f"Target NM data for NM{account['index']}: {target}.")
                     retries = DEFAULT_RETRIES
                     while retries > 0:
                         if account['portfolio'].balance['USDT Value'].sum() >= 10:
