@@ -80,7 +80,8 @@ def rebalance(argv):
                             print(f"\nCurrent balance:\n{account['portfolio'].balance}\n")
                             logging.info(f'Setting up orders for rebalancing. Attempt # '
                                          f'{DEFAULT_RETRIES - retries + 1}')
-                            orders = Rebalance(account['portfolio']).create_orders(target)
+                            account_rebalancer = Rebalance(account['portfolio'])
+                            orders = account_rebalancer.create_orders(target)
                             if len(orders) < 1:
                                 logging.info(f"No more orders, NM{account['index']} portfolio already rebalanced!!!")
                                 rebalancing_completed = True
@@ -88,7 +89,7 @@ def rebalance(argv):
                             else:
                                 if not dry_run:
                                     logging.info('Rebalancing...')
-                                    Rebalance(account['portfolio']).rebalance(orders)
+                                    account_rebalancer.rebalance(orders)
                                     account['portfolio'].refresh_balance()
                                     account['last_update'] = tz_remove_and_normalize(nm_data.last_update)
                                     retries -= 1

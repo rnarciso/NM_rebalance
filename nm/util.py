@@ -39,11 +39,12 @@ INFOFILE = os.path.join(DATA_FOLDER, 'info.dat')
 MAKER_PREMIUM = 0.1 / 100
 MINIMUM_TIME_OFFSET = 2000
 NM_COLUMNS = ['symbol', 'price', 'NM1', 'NM2', 'NM3', 'NM4', 'date']
+NM_INFO_XLSX = '~/Downloads/NM_Guathan.xlsx'
 NM_MAX = 4
+NM_REPORT_DEFAULT_URL = 'http://127.0.0.1/nmREPORT.asp?NM='
 NM_TIME_ZONE = 'Brazil/East'
 NM2_RANGE = 17
 NM4_RANGE = 20
-NM_REPORT_DEFAULT_URL = 'http://127.0.0.1/nmREPORT.asp?NM='
 NMDATA_FILE = os.path.join(DATA_FOLDER, 'nm_index.dat')
 OPEN = 'Open'
 OPEN_TIME = 'Open time'
@@ -66,7 +67,9 @@ YIELD_FILE = os.path.join(DATA_FOLDER, 'yield.dat')
 
 # Following constants are imported from Client later on
 SIDE_SELL, SIDE_BUY, TIME_IN_FORCE_GTC, TIME_IN_FORCE_IOC, ORDER_STATUS_FILLED, ORDER_TYPE_LIMIT, \
-    ORDER_TYPE_LIMIT_MAKER, ORDER_TYPE_MARKET = [None]*8
+    ORDER_TYPE_LIMIT_MAKER, ORDER_TYPE_MARKET, ORDER_STATUS_PARTIALLY_FILLED, ORDER_STATUS_NEW,\
+    ORDER_STATUS_PENDING_CANCEL, ORDER_STATUS_CANCELED, ORDER_STATUS_EXPIRED, ORDER_STATUS_REJECTED \
+    = [None]*14
 
 
 def adjust(from_date, to_date, default_date=None):

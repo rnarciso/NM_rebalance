@@ -13,9 +13,7 @@ from itertools import combinations
 # noinspection PyPackageRequirements
 from binance.exceptions import BinanceAPIException
 
-# import constants from Client
-NM_INFO_XLSX = '~/Downloads/NM_Guathan.xlsx'
-
+# import constants from Clientraw_orders
 for const in globals().copy().keys():
     if globals()[const] is None and Client.__dict__.get(const) is not None:
         globals()[const] = Client.__dict__[const]
@@ -502,7 +500,8 @@ class Backtest:
 
         return consolidated_df
 
-    def predict_slippage(self, consolidated_df, real_final_balance, final_balance_reference=-1,
+    @staticmethod
+    def predict_slippage(consolidated_df, real_final_balance, final_balance_reference=-1,
                          initial_slippage=AVG_SLIPPAGE):
 
         # noinspection PyShadowingNames
@@ -572,7 +571,7 @@ class BinanceAccount:
         self._include_locked_asset_in_balance = include_locked
         self._info = None
         self._min_notational = None
-        self._time_offset = None
+        self._time_offset = 0
         self.fees = Fees(self)
         self.lot_size = {}
         self.connected = False
@@ -588,7 +587,7 @@ class BinanceAccount:
 
     @time_offset.setter
     def time_offset(self, value):
-        self._time_offset = str(value)
+        self._time_offset = value
         time.time = partial(patch_time, self._time_offset)
 
     # noinspection PyShadowingNames
@@ -712,6 +711,21 @@ class BinanceAccount:
             return self._client
         except Exception as e:
             logging.error(e)
+
+    def convert_small_balances(self, base_asset='BNB'):
+        balance = self.balance
+        small_balances = [asset for asset in balance.index
+                          if balance.loc[asset, f'{QUOTE_ASSET} Value'] < self.minimal_order(f'{asset}{QUOTE_ASSET}')]
+        try:
+            bnb_index = small_balances.index(base_asset)
+            small_balances.pop(bnb_index)
+        except ValueError:
+            pass
+        if len(small_balances) > 0:
+            try:
+                self.transfer_dust(asset=','.join(small_balances))
+            except BinanceAPIException as e:
+                logging.error(f'{e}. Assets: {small_balances}.')
 
     @property
     def keyname(self):
@@ -1008,7 +1022,7 @@ class NMData:
             self.get_nm_data()
 
     def __repr__(self):
-        return f'<NMData container class at {hex(id(self))}:\n{self.info.__repr__()}' \
+        return f'<NMData container class at {hex(id(self))}:\n{self.df.__repr__()}' \
                f'\n\nLast update on {self.last_update}>'
 
     def __str__(self):
@@ -1310,6 +1324,7 @@ class Rebalance:
         self.nm_data = NMData()
         self.fees = Fees()
         self.market_orders = True
+        self.market_maker = True
         self.running_in_subaccount = True
         self.top_n = 4
         self.set_attributes_from_config(**kwargs)
@@ -1322,15 +1337,19 @@ class Rebalance:
         # TODO adjust target to simple list
         if isinstance(target, dict):
             if all([isinstance(k, int) for k in target.keys()]):
+                # noinspection PyArgumentList
                 target = pd.DataFrame({index: {coin: percentage / self.top_n
-                    for coin in self.nm_data.get(index).index[:self.top_n]} for index, percentage in
-                    target.items()}).T.sum().to_dict()
+                                       for coin in self.nm_data.get(index).index[:self.top_n]}
+                                       for index, percentage in target.items()}).T.sum().to_dict()
             else:
                 total = sum(target.values())
                 target = {k: v / total for k, v in target.items()}
+        else:
+            target = {k: 1/len(target) for k in target}
         return target
 
-    def create_orders(self, target=None, market_orders=None):
+    def create_orders(self, target=None, market_orders=None, refresh_mean_price=False, threshold=0.5/100, verbose=True,
+                      maker_order=None):
         balance = self.account.balance.copy()
         if not self.running_in_subaccount:
             last_nm_coins = self.nm_data.get(self.nm_index, next_date(tz_remove_and_normalize('utc'), -1)
@@ -1338,60 +1357,69 @@ class Rebalance:
             balance = balance[balance.index.isin(last_nm_coins)]
         if target is None:
             target = self.nm_data.get(self.nm_index).index[:self.top_n]
-        else:
-            target = self.trim_target(target)
+        target = self.trim_target(target)
         if market_orders is None:
             market_orders = self.market_orders
+        if maker_order is None:
+            maker_orde = self.market_maker
         quote_asset_value_ = f'{QUOTE_ASSET} Value'
         quote_value = balance[quote_asset_value_].sum()
         assets = set(balance.index).union(target)
-        avg_prices = {coin: float(self.account.get_avg_price(symbol=f'{coin}{QUOTE_ASSET}').get('price', 1))
-                      if coin != QUOTE_ASSET else 1.0
-                      for coin in tqdm(assets, desc='Retrieving average prices for assets')}
-        if isinstance(target, dict):
-            target_amounts = {coin: (quote_value * ((share/100) if share > 1 else share)) / avg_prices[coin]
-                              for coin, share in target.items()}
-        elif isinstance(target, Iterable):
-            target_amounts = {coin: (quote_value / self.top_n) / float(avg_prices[coin]) for coin in target}
-        else:
-            logging.error(' Target portfolio must be either an iterable or a dictionary!')
-        raw_orders = {coin: target_amounts.get(coin, 0) - balance['Amount'].get(coin, 0) for coin in set(
-                      balance.index).union(target_amounts.keys())}
-        raw_orders = pd.DataFrame(pd.Series(raw_orders, name='Amount'))
-
-        raw_orders[quote_asset_value_] = raw_orders.apply(lambda row: row['Amount'] * avg_prices[row.name], axis=1)
-        raw_orders['minNotional'] = raw_orders.apply(lambda row: self.account.minimal_order(f'{row.name}{QUOTE_ASSET}'),
-                                                     axis=1)
-        raw_orders = raw_orders[abs(raw_orders[quote_asset_value_]) > raw_orders['minNotional']]
-        if len(raw_orders) > 0:
-            while raw_orders[quote_asset_value_].sum() > 0:
-                buys = raw_orders['Amount'] > 0
-                if abs(raw_orders[~buys]['Amount'].sum()) < raw_orders['minNotional'].min():
-                    logging.info(' Orders required to rebalance below minimal notional value!')
-                    return []
-                logging.info(' Trimming orders to fit total account value!')
-                ratio = math.ceil(raw_orders[quote_asset_value_].sum() /
-                                  raw_orders[buys][quote_asset_value_].sum() * 100) / 100
-                raw_orders.loc[buys, 'Amount'] = raw_orders.loc[buys, 'Amount'] * (1 - ratio)
-                raw_orders[quote_asset_value_] = raw_orders.apply(lambda row: row['Amount'] * avg_prices[row.name],
-                                                                  axis=1)
-            if QUOTE_ASSET in raw_orders.index:
-                raw_orders = raw_orders.drop(QUOTE_ASSET)
-            raw_orders = raw_orders.sort_values('Amount', ascending=False)
-            tqdm.pandas(desc='Testing proposed orders')
-            raw_orders['orders'] = raw_orders.progress_apply(lambda row: self.order_trim(
-                    f'{row.name}{QUOTE_ASSET}',
-                    abs(row['Amount']),
-                    side=SIDE_BUY if row['Amount'] > 0 else SIDE_SELL,
-                    order_type=ORDER_TYPE_MARKET if market_orders else ORDER_TYPE_LIMIT,
-                    price=self.account.round_right(avg_prices.get(row.name, 0), f'{row.name}{QUOTE_ASSET}'),
-                    order_time=TIME_IN_FORCE_IOC),
-                    axis=1)
-            tqdm.pandas()
-            return raw_orders['orders'].values
-        else:
-            logging.debug(' No orders required for rebalancing!')
-            return []
+        new_balance = pd.DataFrame(balance, index=assets)
+        new_balance['Target %'] = pd.Series(target) * 100
+        new_balance = new_balance.fillna(0)
+        new_balance['% diff'] = new_balance['Target %'] - new_balance['%']
+        if abs(new_balance['% diff']).max() > threshold * 100:
+            if refresh_mean_price or any(new_balance['Amount'] == 0):
+                new_balance['Mean Price'] = pd.Series({coin: float(self.account.get_avg_price(
+                    symbol=f'{coin}{QUOTE_ASSET}').get('price', 1)) if coin != QUOTE_ASSET else 1.0
+                    for coin in tqdm(assets, desc='Retrieving average prices for assets')})
+            else:
+                new_balance['Mean Price'] = new_balance[f'{QUOTE_ASSET} Value'] / new_balance['Amount']
+            new_balance['Order Size'] = quote_value * (new_balance['% diff'] / 100) / new_balance['Mean Price']
+            new_balance['minNotional'] = new_balance.apply(lambda row: self.account.minimal_order(
+                    f'{row.name}{QUOTE_ASSET}'), axis=1)
+            while True:
+                net_result = (new_balance['Order Size'] * new_balance['Mean Price']).sum()
+                if net_result > 0:
+                    buys = new_balance['Order Size'] > 0
+                    logging.info(' Trimming orders to fit total account value!')
+                    ratio = math.ceil(net_result / (new_balance.loc[buys, quote_asset_value_] *
+                                                    new_balance.loc[buys, '% diff'] / 100).sum() * 1000) / 1000
+                    new_balance.loc[buys, 'Order Size'] = new_balance.loc[buys, 'Order Size'] * (1 - ratio)
+                else:
+                    break
+            if QUOTE_ASSET in new_balance.index:
+                new_balance = new_balance.drop(QUOTE_ASSET)
+            new_balance = new_balance[abs(new_balance['Order Size'] * new_balance['Mean Price'])
+                                      > new_balance.minNotional]
+            if len(new_balance) > 0:
+                new_balance = new_balance.sort_values('Order Size')
+                tqdm.pandas(desc='Testing proposed orders')
+                new_balance['orders'] = new_balance.progress_apply(lambda row: self.order_trim(
+                        f'{row.name}{QUOTE_ASSET}',
+                        abs(row['Order Size']),
+                        side=SIDE_BUY if row['Order Size'] > 0 else SIDE_SELL,
+                        order_type=ORDER_TYPE_MARKET if market_orders else (
+                            ORDER_TYPE_LIMIT_MAKER if maker_order else ORDER_TYPE_LIMIT),
+                        price=self.price_for_amount(
+                                symbol=f'{row.name}{QUOTE_ASSET}',
+                                amount=abs(row['Order Size']),
+                                side=SIDE_BUY if row['Order Size'] > 0 else SIDE_SELL) if ORDER_TYPE_LIMIT_MAKER
+                        else row['Mean Price'],
+                        order_time=TIME_IN_FORCE_IOC),
+                        axis=1)
+                tqdm.pandas()
+                if verbose:
+                    new_balance[f'Target {QUOTE_ASSET} Value'] = (new_balance['Amount'] + new_balance['Order Size']
+                                                        ) * new_balance['Mean Price']
+                    quote_value = new_balance[f'Target {QUOTE_ASSET} Value'].sum()
+                    new_balance['Target %'] = new_balance[f'Target {QUOTE_ASSET} Value'] / quote_value * 100
+                    print(new_balance[['Amount', '%', 'Mean Price', 'Order Size', 'Target %',
+                          f'Target {QUOTE_ASSET} Value']])
+                return new_balance['orders'].values
+        logging.debug(' No orders required for rebalancing!')
+        return []
 
     # noinspection PyShadowingNames
     def fit_market_order(self, market=f'BTC{QUOTE_ASSET}', quote_amount=None, side=SIDE_BUY, add_fee=True):
@@ -1401,13 +1429,14 @@ class Rebalance:
 
         if quote_amount is None:
             try:
-                quote_amount = self.balance.get('Amount', {}).get(self.get_symbol_info(market).get('quoteAsset'), 0.0)
+                quote_amount = self.account.balance.get('Amount', {}).get(
+                        self.account.get_symbol_info(market).get('quoteAsset'), 0.0)
             except AttributeError:
                 quote_amount = 0.0
 
         if quote_amount > 0:
             try:
-                book_orders = self.get_order_book(symbol=market).get('asks' if side == SIDE_BUY else 'bids')
+                book_orders = self.account.get_order_book(symbol=market).get('asks' if side == SIDE_BUY else 'bids')
             except Exception as e:
                 logging.error(e)
                 return return_dict(0.0, 0.0)
@@ -1434,23 +1463,19 @@ class Rebalance:
         else:
             return return_dict(0.0, 0.0)
 
-    # noinspection PyShadowingNames
-    def place_order(self, order, return_number_only=False):
-        try:
-            order.pop('validated')
-        except KeyError:
-            pass
-        try:
-            status = self.account.create_order(**order)
-        except BinanceAPIException as e:
-            status = dict(orderId=e.code, status=e.message, symbol=order.get('symbol'))
-        logging.debug(f'\n{status}\n')
-        if return_number_only:
-            return status.get('orderId')
-        else:
-            return {k: v for k, v in status.items() if k in ('orderId', 'symbol', 'status')}
+    def mark_down_orders(self, orders):
+        for order in orders:
+            try:
+                pair = order.get('symbol')
+                amount = float(order.get('quantity'))
+                side = order.get('side')
+                maker = order.get('side') == ORDER_TYPE_LIMIT_MAKER
+                order['price'] = str(self.account.round_right(
+                        self.price_for_amount(self, pair, amount=amount, side=side, maker=maker), pair))
+            except Exception as e:
+                logging.error(e)
+        return orders
 
-    # noinspection PyShadowingNames
     def order_status(self, orderId):
         while True:
             try:
@@ -1460,6 +1485,20 @@ class Rebalance:
             except BinanceAPIException as e:
                 logging.error(e)
         return order.get('status', 'CLOSED')
+
+    def refresh_order_status(self, orders):
+        for order in orders:
+            status = 'UNKOWN'
+            order_id = order.get("orderId", -1)
+            if order_id > 0:
+                try:
+                    status = self.account.get_order(symbol=order.get("symbol"),
+                                                    orderId=order.get("orderId"))["status"]
+                except BinanceAPIException as e:
+                    logging.error(e)
+                order['status'] = status
+            logging.debug(f' Order # {order_id}: {status}')
+        return orders
 
     # noinspection PyShadowingNames
     def order_trim(self,
@@ -1486,7 +1525,7 @@ class Rebalance:
         if not precision > 0:
             precision = 10 ** -5
         amt_str = truncate(amount, precision)
-        price_str = truncate(price, precision)
+        price_str = str(self.account.round_right(price, pair))
         order = dict(symbol=pair, side=side, type=order_type, quantity=amt_str)
 
         if order_type not in [ORDER_TYPE_MARKET]:
@@ -1505,52 +1544,122 @@ class Rebalance:
 
         return order
 
-    # noinspection PyShadowingNames,PyShadowingNames
-    def rebalance(self, orders=None, switch_to_market_order_if_order_fails=False, **kwargs):
+    # noinspection PyShadowingNames
+    def place_order(self, order, return_number_only=False):
+        try:
+            order.pop('validated')
+        except KeyError:
+            pass
+        try:
+            status = self.account.create_order(**order)
+        except BinanceAPIException as e:
+            status = dict(orderId=e.code, status=e.message, symbol=order.get('symbol'))
+        logging.debug(f'\n{status}\n')
+        if return_number_only:
+            return status.get('orderId')
+        else:
+            return {k: v for k, v in status.items() if k in ('orderId', 'symbol', 'status')}
+
+    def place_orders(self, orders):
+        # noinspection PyShadowingNames
+
+        # noinspection PyShadowingNames
+        def status_for_id(order_id=None):
+            status = {d.get('orderId', 0): d.get('status', 'UNKOWN') for d in orders}
+            if order_id is None:
+                return status
+            else:
+                return status.get(order_id)
+
+        for order in tqdm(orders, desc='placing orders'):
+            if order['side'] == 'BUY' and len(orders) > 0:
+                while True:
+                    pending_orders = any([status_for_id(o['OrderId']) in (
+                        ORDER_STATUS_NEW, ORDER_STATUS_PARTIALLY_FILLED, ORDER_STATUS_PENDING_CANCEL) for o in orders
+                                             if o.get('OrderId', -1) > 0 and o.get('side') == SIDE_SELL])
+                    if pending_orders:
+                        time.sleep(30)
+                        self.refresh_order_status(orders)
+                    else:
+                        break
+                unfilled_orders = [o for o in orders if status_for_id(o.get('orderId', -1)) in (
+                    ORDER_STATUS_CANCELED, ORDER_STATUS_EXPIRED, ORDER_STATUS_REJECTED, 'UNKOWN')]
+                if len(unfilled_orders) > 1:
+                    self.mark_down_orders(unfilled_orders)
+                    return self.place_orders(unfilled_orders)
+            # noinspection PyPep8Naming
+            status = self.place_order(order)
+            order.update(status)
+        else:
+            self.refresh_order_status(orders)
+            return all([s == ORDER_STATUS_FILLED for s in status_for_id().values()])
+
+    def price_for_amount(self, symbol, amount=None, side=SIDE_BUY, maker=False):
+        try:
+            order_book = self.account.get_order_book(symbol=symbol)
+            if maker:
+                while True:
+                    best_bid = float(order_book['bids'][0][0])
+                    best_ask = float(order_book['asks'][0][0])
+                    price = self.account.round_right(np.mean([best_bid, best_ask]), symbol)
+                    if price not in (best_bid, best_ask):
+                        return price
+                    order_book = self.account.get_order_book(symbol=symbol)
+            else:
+                orders = order_book['asks' if side == SIDE_BUY else 'bids']
+                amount_to_fill = amount
+                for order in orders:
+                    amount_to_fill -= float(order[-1])
+                    if amount_to_fill <= 0:
+                        return float(order[0])
+        except ValueError:
+            logging.error(' No orders on order book for {symbol}.')
+        except Exception as e:
+            logging.error(e)
+        return 0.0
+
+    def rebalance(self, orders=None, target=None):
+        if target is None:
+            target = []
         if orders is None:
-            orders = self.create_orders(kwargs.pop('target', []))
+            orders = self.create_orders(target)
         if len(orders) > 0:
-            order_log = []
             try:
                 orders = sorted(orders, key=lambda row: (row['side'], float(row['quantity'])), reverse=True)
             except Exception as e:
                 logging.error(e)
-            for order in tqdm(orders, desc='placing orders'):
-                # noinspection PyPep8Naming
-                status = self.place_order(order)
-                order_log.append(status)
-                # TODO next statement must be remade
-                if status.get('orderId', 0) < 0 and switch_to_market_order_if_order_fails:
-                    market = status.get('symbol')
-                    amount = self.fit_market_order(market).get('amount', 0.0)
-                    response = {}
-                    while True:
-                        try:
-                            response = self.place_order(self.order_trim(market, amount,
-                                                        side=status.get('side', SIDE_BUY),
-                                                        order_type=ORDER_TYPE_MARKET),
-                                                        False)
-                            break
-                        except BinanceAPIException:
-                            self._time_offset = 0
-                            if self.time_offset < 1:
-                                break
-                    # noinspection PyPep8Naming
-                    orderId = response.get('orderId', -1)
-                    if orderId < 0:
-                        logging.error(f' Invalid order # {orderId} for pair {market}: {response.get("status")}')
-                        continue
-            for order in order_log:
-                order_id = order.get("orderId")
-                if order_id > 0:
-                    try:
-                        status = self.account.get_order(symbol=order.get("symbol"),
-                                                        orderId=order.get("orderId"))["status"]
-                    except BinanceAPIException as e:
-                        logging.error(e)
-                        status = 'UNKOWN'
-                    order['status'] = status
-                logging.info(f' Order # {order.get("orderId")}: {order.get("status")}')
+            retries = 5
+            while not self.place_orders(orders):
+                self.refresh_order_status(orders)
+                orders = [o for o in orders if o.get('status') != ORDER_STATUS_FILLED]
+                self.recycle_orders(orders)
+                if len(orders) < 1 or retries < 1:
+                    break
+                else:
+                    retries -= 1
+
+    def recycle_orders(self, orders):
+
+        # noinspection PyShadowingNames
+        def unkown_action(order):
+            logging.error(f'Not sure what to do with this order: {order}.')
+            orders.pop(order)
+
+        for index, order in enumerate(orders):
+            if order['orderId'] < 0:
+                if order['type'] == ORDER_TYPE_LIMIT_MAKER and 'take' in order['status']:
+                    order['price'] = str(self.price_for_amount(order['symbol'], side=order['side'], maker=True))
+                else:
+                    unkown_action(order)
+
+            elif order['status'] in (ORDER_STATUS_EXPIRED, ORDER_STATUS_CANCELED):
+                order['price'] = str(self.price_for_amount(order['symbol'], amount=float(order['symbol']),
+                                     side=order['side'], maker=False))
+            else:
+                unkown_action(order)
+            orders[index] = order
+
+        return orders
 
     def set_attributes_from_config(self, **kwargs):
         attributes = self.account.config
@@ -1587,6 +1696,7 @@ class Statement:
                 # noinspection PyPep8Naming,PyShadowingNames
                 from config import statement_file as STATEMENT_FILE
             except (ImportError, ModuleNotFoundError):
+                # noinspection PyGlobalUndefined
                 global STATEMENT_FILE
                 datafile = STATEMENT_FILE
         try:
@@ -1619,6 +1729,7 @@ class Statement:
                         trades += self.binance_api.get_my_trades(symbol=symbol)
             except BinanceAPIException as e:
                 logging.error(e)
+        # noinspection PyTypeChecker
         transactions = pd.DataFrame.from_dict(trades)
         for timestamp in ['time', 'updateTime']:
             if timestamp in transactions.columns:
@@ -1639,6 +1750,7 @@ class Statement:
                 logging.error(e)
 
         dusts = dusts.applymap(partial(pd.to_numeric, errors='ignore'))
+        # noinspection PyTypeChecker
         dusts.operateTime = pd.to_datetime(dusts.operateTime).apply(pd.Timestamp)
         dusts['symbol'] = pd.Series([f'BNB{s}' if f'BNB{s}' in symbols else f'{s}BNB'
                                     for i, s in enumerate(dusts.fromAsset.values)])
