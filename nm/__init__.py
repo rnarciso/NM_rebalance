@@ -1179,11 +1179,14 @@ class NMData:
     def get_nm_data(self, url=None):
         if url is None:
             url = self._nm_url
+
         try:
+            if self.df.index.name != 'date':
+                self.df = self.df.set_index('date')
             max_date = self.df.index.max()
             if np.isnan(max_date):
                 raise ValueError
-        except (ValueError, AttributeError, TypeError):
+        except (AttributeError, KeyError, TypeError, ValueError):
             max_date = tz_remove_and_normalize(EXCHANGE_OPENING_DATE)
         df = pd.DataFrame()
         for i in range(1, NM_MAX + 1):

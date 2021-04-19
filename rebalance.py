@@ -25,7 +25,7 @@ def rebalance(argv):
             force_first_rebalance = True
     nm_data = NMData()
     retries = DEFAULT_RETRIES
-    if (tz_remove_and_normalize('utc') - tz_remove_and_normalize(nm_data.last_update)).seconds // 60 > max(
+    if (tz_remove_and_normalize('utc') - tz_remove_and_normalize(nm_data.last_update)).seconds // 60 > min(
             [a.get('rebalance_interval', 24 * 60) for a in account_config]):
         while retries > 0:
             try:
