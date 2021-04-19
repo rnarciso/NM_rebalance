@@ -104,7 +104,7 @@ def rebalance(argv):
                 elif first_run:
                     logging.info('Waiting next rebalance for account "{0}" in {1} minutes.'.format(
                             account['account_name'], ((account['last_update'] + pd.Timedelta(account[
-                            'rebalance_interval'], 'minutes')) - tz_remove_and_normalize('utc')).seconds//60))
+                            'rebalance_interval'], 'minutes')) - pd.Timestamp('now')).seconds//60))
             except Exception as e:
                 logging.error(e)
         else:

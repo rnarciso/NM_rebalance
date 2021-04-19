@@ -7,7 +7,7 @@ from tqdm import tqdm
 from functools import reduce
 from time import time as systime
 
-if sys.version_info[:3] > (3, 7):
+if sys.version_info[:3] < (3, 7):
     import pickle5 as pickle
 else:
     import pickle
