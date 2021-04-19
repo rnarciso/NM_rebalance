@@ -1348,7 +1348,7 @@ class Rebalance:
             target = {k: 1/len(target) for k in target}
         return target
 
-    def create_orders(self, target=None, market_orders=None, refresh_mean_price=False, threshold=0.5/100, verbose=True,
+    def create_orders(self, target=None, market_orders=None, refresh_mean_price=False, threshold=1/100, verbose=True,
                       maker_order=None):
         balance = self.account.balance.copy()
         if not self.running_in_subaccount:
@@ -1471,7 +1471,9 @@ class Rebalance:
                 side = order.get('side')
                 maker = order.get('side') == ORDER_TYPE_LIMIT_MAKER
                 order['price'] = str(self.account.round_right(
-                        self.price_for_amount(self, pair, amount=amount, side=side, maker=maker), pair))
+                        self.price_for_amount(pair, amount=amount, side=side, maker=maker), pair))
+                order.pop('orderId')
+                order.pop('status')
             except Exception as e:
                 logging.error(e)
         return orders
@@ -1488,9 +1490,9 @@ class Rebalance:
 
     def refresh_order_status(self, orders):
         for order in orders:
-            status = 'UNKOWN'
+            status = order.get("status", 'UNKOWN')
             order_id = order.get("orderId", -1)
-            if order_id > 0:
+            if order_id > 0 and status != ORDER_STATUS_FILLED:
                 try:
                     status = self.account.get_order(symbol=order.get("symbol"),
                                                     orderId=order.get("orderId"))["status"]
@@ -1613,7 +1615,7 @@ class Rebalance:
                     if amount_to_fill <= 0:
                         return float(order[0])
         except ValueError:
-            logging.error(' No orders on order book for {symbol}.')
+            logging.error(f' No orders on order book for {symbol}.')
         except Exception as e:
             logging.error(e)
         return 0.0
@@ -1647,16 +1649,18 @@ class Rebalance:
 
         for index, order in enumerate(orders):
             if order['orderId'] < 0:
-                if order['type'] == ORDER_TYPE_LIMIT_MAKER and 'take' in order['status']:
-                    order['price'] = str(self.price_for_amount(order['symbol'], side=order['side'], maker=True))
-                else:
-                    unkown_action(order)
-
+                if order['status'] == 'Account has insufficient balance for requested action.':
+                    order['quantity'] = str(self.account.round_right(
+                            self.account.balance.loc[QUOTE_ASSET, 'Amount'] / float(order['price']), order['symbol']))
+            elif order['type'] == ORDER_TYPE_LIMIT_MAKER and 'take' in order['status']:
+                order['price'] = str(self.price_for_amount(order['symbol'], side=order['side'], maker=True))
             elif order['status'] in (ORDER_STATUS_EXPIRED, ORDER_STATUS_CANCELED):
-                order['price'] = str(self.price_for_amount(order['symbol'], amount=float(order['symbol']),
+                order['price'] = str(self.price_for_amount(order['symbol'], amount=float(order['quantity']),
                                      side=order['side'], maker=False))
             else:
                 unkown_action(order)
+            order.pop('status')
+            order.pop('orderId')
             orders[index] = order
 
         return orders
