@@ -5,7 +5,7 @@ import getopt
 import logging
 import pandas as pd
 from nm import NMData, BinanceAccount, Rebalance
-from nm.util import tz_remove_and_normalize
+from nm.util import tz_remove_and_normalize, QUOTE_ASSET
 from config import RETRIES as DEFAULT_RETRIES
 from config import accounts as account_config
 
@@ -76,7 +76,7 @@ def rebalance(argv):
                         logging.info(f"Target NM data for NM{account['index']}: {target}.")
                     retries = DEFAULT_RETRIES
                     while retries > 0:
-                        if account['portfolio'].balance['USDT Value'].sum() >= 10:
+                        if account['portfolio'].balance[f'{QUOTE_ASSET} Value'].sum() >= 10:
                             print(f"\nCurrent balance:\n{account['portfolio'].balance}\n")
                             logging.info(f'Setting up orders for rebalancing. Attempt # '
                                          f'{DEFAULT_RETRIES - retries + 1}')
