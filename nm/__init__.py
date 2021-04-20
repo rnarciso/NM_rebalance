@@ -1157,15 +1157,14 @@ class NMData:
 
     def get(self, nm_index=1, date='utc'):
         date = next_date(date, -1)
-        columns = [SYMBOL, f'NM{nm_index}']
-        df = self.df.drop_duplicates()
+        df = self.df
         if 'date' in df.columns:
             df = df.set_index('date')
         retries = 3
         while retries > 0:
             retries -= 1
             try:
-                nm_for_date = df.sort_index().loc[date.strftime('%Y%m%d')]
+                nm_for_date = df.sort_index().loc[date.strftime('%Y%m%d')].groupby('symbol').last()
             except KeyError:
                 nm_for_date = pd.DataFrame()
             if len(nm_for_date) < 1:
@@ -1174,7 +1173,7 @@ class NMData:
                 else:
                     break
             else:
-                return nm_for_date[columns].set_index(SYMBOL).sort_values(f'NM{nm_index}', ascending=False)
+                return nm_for_date[f'NM{nm_index}'].sort_values( ascending=False)
         raise IndexError
 
     # noinspection PyShadowingNames
@@ -1328,7 +1327,7 @@ class Rebalance:
 
         self.nm_data = NMData()
         self.fees = Fees()
-        self.market_orders = True
+        self.market_orders = False
         self.market_maker = True
         self.running_in_subaccount = True
         self.top_n = 4
@@ -1366,7 +1365,7 @@ class Rebalance:
         if market_orders is None:
             market_orders = self.market_orders
         if maker_order is None:
-            maker_orde = self.market_maker
+            maker_order = self.market_maker
         quote_asset_value_ = f'{QUOTE_ASSET} Value'
         quote_value = balance[quote_asset_value_].sum()
         assets = set(balance.index).union(target)
@@ -1410,8 +1409,8 @@ class Rebalance:
                         price=self.price_for_amount(
                                 symbol=f'{row.name}{QUOTE_ASSET}',
                                 amount=abs(row['Order Size']),
-                                side=SIDE_BUY if row['Order Size'] > 0 else SIDE_SELL) if ORDER_TYPE_LIMIT_MAKER
-                        else row['Mean Price'],
+                                side=SIDE_BUY if row['Order Size'] > 0 else SIDE_SELL
+                                ) if maker_order else row['Mean Price'],
                         order_time=TIME_IN_FORCE_IOC),
                         axis=1)
                 tqdm.pandas()
