@@ -594,7 +594,7 @@ class BinanceAccount:
     def __getattr__(self, attr):
         if attr[0] != '_' and not hasattr(super(), attr):
             try:
-                if self._config is not None and attr in self._config.keys():
+                if hasattr(self, '_config') and self._config is not None and attr in self._config.keys():
                     setattr(self, attr, self._config[attr])
                     return self._config[attr]
                 else:
@@ -674,7 +674,7 @@ class BinanceAccount:
 
     # noinspection PyUnboundLocalVariable,PyShadowingNames,PyShadowingNames,PyShadowingNames
     def connect(self, keyname: str = None):
-        if self._config is None:
+        if not hasattr(self, '_config') or self._config is None:
             if keyname is None:
                 keyname = 'binance'
             try:
@@ -911,6 +911,8 @@ class CoinData:
             to_date = tz_remove_and_normalize('utc')
         symbols = [i.get('symbol') for i in self.binance_api.get_all_tickers()]
         for asset in tqdm(assets):
+            if QUOTE_ASSET in asset:
+                asset = asset.replace(QUOTE_ASSET, '')
             try:
                 old_data = self.history_for(asset)
                 last_date = old_data.index.max() if old_data.index.max() > from_date else from_date
