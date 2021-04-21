@@ -5,7 +5,7 @@ import getopt
 import logging
 import pandas as pd
 from nm import NMData, BinanceAccount, Rebalance
-from nm.util import tz_remove_and_normalize, QUOTE_ASSET
+from nm.util import tz_remove_and_normalize, QUOTE_ASSET, log_error
 from config import RETRIES as DEFAULT_RETRIES
 from config import accounts as account_config
 
@@ -33,7 +33,7 @@ def rebalance(argv):
                 nm_data.get_nm_data()
                 break
             except Exception as e:
-                logging.error(e)
+                log_error(e)
                 retries -= 1
         else:
             logging.error('Unable to read NM index table. Aborting...')
@@ -64,7 +64,7 @@ def rebalance(argv):
                             nm_data.get_nm_data()
                             break
                         except Exception as e:
-                            logging.error(e)
+                            log_error(e)
                             nm_retries -= 1
                     if 'distribution' in account.keys():
                         target = account['distribution']
@@ -106,7 +106,7 @@ def rebalance(argv):
                             account['account_name'], ((account['last_update'] + pd.Timedelta(account[
                             'rebalance_interval'], 'minutes')) - pd.Timestamp('now')).seconds//60))
             except Exception as e:
-                logging.error(e)
+                log_error(e)
         else:
             if rebalancing_completed:
                 print("Rebalancing complete for all configured portfolios!")

@@ -92,7 +92,7 @@ class Fees:
                 self._df = pd.DataFrame.from_dict(self.get_trade_fee()['tradeFee']).set_index('symbol')
                 self.save()
         except Exception as e:
-            logging.error(e)
+            log_error(e)
         return self._df
 
     @df.setter
@@ -130,7 +130,7 @@ class Fees:
             downgrade_pickle(datafile)
             return self.load(datafile)
         except Exception as e:
-            logging.error(e)
+            log_error(e)
 
     def save(self):
         if self.filename is None:
@@ -171,7 +171,7 @@ class SymbolInfo:
             self.aggregated_info.setdefault('info', {})[symbol] = info
             self.save()
         except BinanceAPIException as e:
-            logging.error(e)
+            log_error(e)
 
     def __repr__(self):
         return pd.DataFrame(self.info).T.__repr__()
@@ -215,7 +215,7 @@ class SymbolInfo:
                     for dd in l for kk, v in dd.items() if kk == 'filterType'}
                     for k, l in self.aggregated_info['filters'].items()}
         except Exception as e:
-            logging.error(e)
+            log_error(e)
             return {}
 
     def for_symbols(self, symbols, attribute):
@@ -263,7 +263,7 @@ class SymbolInfo:
             downgrade_pickle(datafile)
             return self.load(datafile)
         except Exception as e:
-            logging.error(e)
+            log_error(e)
 
     def save(self):
         if self.filename is None:
@@ -339,7 +339,7 @@ class Deposits:
                                                                      *[date.strftime('%Y-%m-%d')] * 2)
                 transaction.loc[date, 'Quote Value'] = value * market_data['Low'].iloc[0]
             except BinanceAPIException as e:
-                logging.error(e)
+                log_error(e)
         self._data = self._data.append(transaction).reset_index().groupby(['index', 'NM']).sum().reset_index(
                 ).set_index('index')
         return self
@@ -566,7 +566,7 @@ class BinanceAccount:
                 else:
                     self._config = accounts[0]
             except Exception as e:
-                logging.error(e)
+                log_error(e)
             self._keyname = keyname
         self._include_locked_asset_in_balance = include_locked
         self._info = None
@@ -604,7 +604,7 @@ class BinanceAccount:
                         setattr(self, attr, getattr(self._client, attr))
                         return getattr(self._client, attr)
             except BinanceAPIException as e:
-                logging.error(e)
+                log_error(e)
         super().__getattribute__(attr)
 
     # noinspection PyShadowingNames
@@ -612,7 +612,7 @@ class BinanceAccount:
         try:
             book_orders = self.get_order_book(symbol=market).get('asks' if side == SIDE_BUY else 'bids')
         except Exception as e:
-            logging.error(e)
+            log_error(e)
             return 0.0, 0.0
         if len(book_orders) > 0:
             amount_left = amount
@@ -648,7 +648,7 @@ class BinanceAccount:
                                                   row['Amount'] if row.name != QUOTE_ASSET else row['Amount'], axis=1)
             df['%'] = df[f'{QUOTE_ASSET} Value'] / df[f'{QUOTE_ASSET} Value'].sum() * 100
         except Exception as e:
-            logging.error(e)
+            log_error(e)
         return df
 
     @property
@@ -665,7 +665,7 @@ class BinanceAccount:
                 from config import accounts
                 self._config = accounts[0]
             except Exception as e:
-                logging.error(e)
+                log_error(e)
         return self._config
 
     @config.setter
@@ -685,9 +685,9 @@ class BinanceAccount:
             except FileNotFoundError:
                 logging.info(' Key file not found!')
             except json.JSONDecodeError:
-                logging.error(' Invalid Key file format!')
+                log_error(' Invalid Key file format!')
             except Exception as e:
-                logging.error(e)
+                log_error(e)
         else:
             api_key = self._config.get('api_key')
             api_secret = self._config.get('api_secret')
@@ -705,12 +705,12 @@ class BinanceAccount:
                 except BinanceAPIException:
                     self.connected = False
             except Exception as e:
-                logging.error(e)
+                log_error(e)
                 self.connected = False
 
             return self._client
         except Exception as e:
-            logging.error(e)
+            log_error(e)
 
     def convert_small_balances(self, base_asset='BNB'):
         balance = self.balance
@@ -725,7 +725,8 @@ class BinanceAccount:
             try:
                 self.transfer_dust(asset=','.join(small_balances))
             except BinanceAPIException as e:
-                logging.error(f'{e}. Assets: {small_balances}.')
+                if str(e).find('Only can be requested once within 6 hours') < 0:
+                    log_error(f'{e}. Assets: {small_balances}.')
 
     @property
     def keyname(self):
@@ -748,7 +749,7 @@ class BinanceAccount:
         try:
             return {k: v for k, d in self.info.filters.items() for kk, v in d.items() if kk == 'MIN_NOTIONAL'}
         except Exception as e:
-            logging.error(e)
+            log_error(e)
             return {}
 
     def minimal_order(self, pair):
@@ -783,7 +784,7 @@ class BinanceAccount:
                 self.time_offset = None
                 retries -= 1
         else:
-            logging.error(' Unable to retrieve balances from Binance!')
+            log_error(' Unable to retrieve balances from Binance!')
             return pd.Series(self._balance).sort_values()
         if include_locked is None:
             include_locked = self._include_locked_asset_in_balance
@@ -893,7 +894,7 @@ class CoinData:
             downgrade_pickle(datafile)
             return self.load(datafile)
         except Exception as e:
-            logging.error(e)
+            log_error(e)
 
     def reset(self, confirm=False):
         self.history = pd.DataFrame()
@@ -939,7 +940,7 @@ class CoinData:
             except ValueError:
                 logging.info(f' No data for {symbol} from {from_date} to {to_date}.')
             except Exception as e:
-                logging.error(e)
+                log_error(e)
         if SYMBOL in self.history.columns:
             self.history = self.history.sort_values(SYMBOL).sort_index()
             self.save()
@@ -965,7 +966,7 @@ class CoinData:
             try:
                 return self.update(assets, from_date=date, to_date=date)
             except Exception as e:
-                logging.error(e)
+                log_error(e)
         return pd.DataFrame()
 
     def save(self):
@@ -1010,7 +1011,7 @@ class NMData:
             try:
                 from config import nm_url
             except (ImportError, ModuleNotFoundError):
-                logging.error("Invalid config.py file, 'nm_url' not specified!")
+                log_error("Invalid config.py file, 'nm_url' not specified!")
                 self._nm_url = NM_REPORT_DEFAULT_URL
         self._nm_url = nm_url
         self._df = None
@@ -1132,7 +1133,7 @@ class NMData:
             downgrade_pickle(datafile)
             return self.load(datafile)
         except Exception as e:
-            logging.error(e)
+            log_error(e)
         return self._df
 
     def save(self):
@@ -1182,10 +1183,10 @@ class NMData:
             url = self._nm_url
 
         try:
-            if self.df.index.name != 'date':
+            if 'date' in self.df.columns:
                 self.df = self.df.set_index('date')
             max_date = self.df.index.max()
-            if np.isnan(max_date):
+            if not isinstance(max_date, pd.Timestamp):
                 raise ValueError
         except (AttributeError, KeyError, TypeError, ValueError):
             max_date = tz_remove_and_normalize(EXCHANGE_OPENING_DATE)
@@ -1203,7 +1204,7 @@ class NMData:
                 else:
                     break
             except Exception as e:
-                logging.error(e)
+                log_error(e)
         if len(df) > 0:
             self.df = pd.concat([self.df, df.set_index('date')])
             self.df = self.df.drop_duplicates()
@@ -1442,7 +1443,7 @@ class Rebalance:
             try:
                 book_orders = self.account.get_order_book(symbol=market).get('asks' if side == SIDE_BUY else 'bids')
             except Exception as e:
-                logging.error(e)
+                log_error(e)
                 return return_dict(0.0, 0.0)
 
             if len(book_orders) > 0:
@@ -1478,8 +1479,10 @@ class Rebalance:
                         self.price_for_amount(pair, amount=amount, side=side, maker=maker), pair))
                 order.pop('orderId')
                 order.pop('status')
+            except KeyError:
+                pass
             except Exception as e:
-                logging.error(e)
+                log_error(e)
         return orders
 
     def order_status(self, orderId):
@@ -1489,21 +1492,27 @@ class Rebalance:
                          if o.get('orderId', -1) == orderId}
                 break
             except BinanceAPIException as e:
-                logging.error(e)
+                log_error(e)
         return order.get('status', 'CLOSED')
 
     def refresh_order_status(self, orders):
         for order in orders:
-            status = order.get("status", 'UNKOWN')
-            order_id = order.get("orderId", -1)
-            if order_id > 0 and status != ORDER_STATUS_FILLED:
-                try:
-                    status = self.account.get_order(symbol=order.get("symbol"),
-                                                    orderId=order.get("orderId"))["status"]
-                except BinanceAPIException as e:
-                    logging.error(e)
-                order['status'] = status
-            logging.debug(f' Order # {order_id}: {status}')
+            try:
+                status = order.get("status", 'UNKNOWN')
+                order_id = order.get("orderId", -1)
+                if order_id > 0 and status != ORDER_STATUS_FILLED:
+                    try:
+                        status = self.account.get_order(symbol=order.get("symbol"),
+                                                        orderId=order.get("orderId", {status: 'UNKNOWN'}))["status"]
+                    except BinanceAPIException as e:
+                        if str(e).find('Order does not exist') > -1:
+                            status = 'FILLED'
+                        else:
+                            log_error(e)
+                    order['status'] = status
+                logging.debug(f' Order # {order_id}: {status}')
+            except Exception as e:
+                log_error(e)
         return orders
 
     # noinspection PyShadowingNames
@@ -1545,7 +1554,7 @@ class Rebalance:
                 self.account.create_test_order(**order)
                 order['validated'] = True
             except Exception as e:
-                logging.error(f' Invalid order: {order}, error: {e}')
+                log_error(f' Invalid order: {order}, error: {e}')
                 order['validated'] = False
 
         return order
@@ -1562,7 +1571,7 @@ class Rebalance:
             status = dict(orderId=e.code, status=e.message, symbol=order.get('symbol'))
         logging.debug(f'\n{status}\n')
         if return_number_only:
-            return status.get('orderId')
+            return status.get('orderId', -1)
         else:
             return {k: v for k, v in status.items() if k in ('orderId', 'symbol', 'status')}
 
@@ -1571,7 +1580,7 @@ class Rebalance:
 
         # noinspection PyShadowingNames
         def status_for_id(order_id=None):
-            status = {d.get('orderId', 0): d.get('status', 'UNKOWN') for d in orders}
+            status = {d.get('orderId', 0): d.get('status', 'UNKNOWN') for d in orders}
             if order_id is None:
                 return status
             else:
@@ -1589,7 +1598,7 @@ class Rebalance:
                     else:
                         break
                 unfilled_orders = [o for o in orders if status_for_id(o.get('orderId', -1)) in (
-                    ORDER_STATUS_CANCELED, ORDER_STATUS_EXPIRED, ORDER_STATUS_REJECTED, 'UNKOWN')]
+                    ORDER_STATUS_CANCELED, ORDER_STATUS_EXPIRED, ORDER_STATUS_REJECTED, 'UNKNOWN')]
                 if len(unfilled_orders) > 1:
                     self.mark_down_orders(unfilled_orders)
                     return self.place_orders(unfilled_orders)
@@ -1619,9 +1628,9 @@ class Rebalance:
                     if amount_to_fill <= 0:
                         return float(order[0])
         except ValueError:
-            logging.error(f' No orders on order book for {symbol}.')
+            log_error(f' No orders on order book for {symbol}.')
         except Exception as e:
-            logging.error(e)
+            log_error(e)
         return 0.0
 
     def rebalance(self, orders=None, target=None):
@@ -1633,7 +1642,7 @@ class Rebalance:
             try:
                 orders = sorted(orders, key=lambda row: (row['side'], float(row['quantity'])), reverse=True)
             except Exception as e:
-                logging.error(e)
+                log_error(e)
             retries = 5
             while not self.place_orders(orders):
                 self.refresh_order_status(orders)
@@ -1647,26 +1656,32 @@ class Rebalance:
     def recycle_orders(self, orders):
 
         # noinspection PyShadowingNames
-        def unkown_action(order):
-            logging.error(f'Not sure what to do with this order: {order}.')
-            orders.pop(order)
+        def unknown_action(order):
+            if order.get('status', 'UNKNOWN') != ORDER_STATUS_NEW:
+                log_error(f'Not sure what to do with this order: {order}.')
+                orders.pop(order)
 
         for index, order in enumerate(orders):
-            if order['orderId'] < 0:
-                if order['status'] == 'Account has insufficient balance for requested action.':
-                    order['quantity'] = str(self.account.round_right(
-                            self.account.balance.loc[QUOTE_ASSET, 'Amount'] / float(order['price']), order['symbol']))
-            elif order['type'] == ORDER_TYPE_LIMIT_MAKER and 'take' in order['status']:
-                order['price'] = str(self.price_for_amount(order['symbol'], side=order['side'], maker=True))
-            elif order['status'] in (ORDER_STATUS_EXPIRED, ORDER_STATUS_CANCELED):
-                order['price'] = str(self.price_for_amount(order['symbol'], amount=float(order['quantity']),
-                                     side=order['side'], maker=False))
-            else:
-                unkown_action(order)
-            order.pop('status')
-            order.pop('orderId')
-            orders[index] = order
-
+            try:
+                if order['orderId'] < 0:
+                    if order['status'] == 'Account has insufficient balance for requested action.':
+                        order['quantity'] = str(self.account.round_right(
+                                self.account.balance.loc[QUOTE_ASSET, 'Amount'] / float(order['price']), order['symbol']))
+                elif order['type'] == ORDER_TYPE_LIMIT_MAKER and 'take' in order['status']:
+                    order['price'] = str(self.price_for_amount(order['symbol'], side=order['side'], maker=True))
+                elif order['status'] in (ORDER_STATUS_EXPIRED, ORDER_STATUS_CANCELED):
+                    order['price'] = str(self.price_for_amount(order['symbol'], amount=float(order['quantity']),
+                                         side=order['side'], maker=False))
+                else:
+                    unknown_action(order)
+                order.pop('status')
+                order.pop('orderId')
+                orders[index] = order
+            except KeyError:
+                order['orderId'] = -1
+                order['status'] = 'UNKNOWN'
+            except Exception as e:
+                log_error(e)
         return orders
 
     def set_attributes_from_config(self, **kwargs):
@@ -1715,7 +1730,7 @@ class Statement:
             downgrade_pickle(datafile)
             return self.load(datafile)
         except Exception as e:
-            logging.error(e)
+            log_error(e)
 
     # noinspection PyShadowingNames
     def statement(self, since=None):
@@ -1736,7 +1751,7 @@ class Statement:
                         logging.warning(e)
                         trades += self.binance_api.get_my_trades(symbol=symbol)
             except BinanceAPIException as e:
-                logging.error(e)
+                log_error(e)
         # noinspection PyTypeChecker
         transactions = pd.DataFrame.from_dict(trades)
         for timestamp in ['time', 'updateTime']:
@@ -1755,7 +1770,7 @@ class Statement:
                 dusts = pd.DataFrame([i.get('logs')[0] for i in self.binance_api.get_dust_log()['results']
                                      ['rows'] if i.get('logs') is not None])
             except Exception as e:
-                logging.error(e)
+                log_error(e)
 
         dusts = dusts.applymap(partial(pd.to_numeric, errors='ignore'))
         # noinspection PyTypeChecker
@@ -1849,7 +1864,7 @@ class TAData:
                 self._df = self.add_tech_analysis(add_next_day_results=True)
                 self.save()
         except Exception as e:
-            logging.error(e)
+            log_error(e)
         return self._df
 
     @df.setter
@@ -1868,7 +1883,7 @@ class TAData:
             downgrade_pickle(datafile)
             return self.load(datafile)
         except Exception as e:
-            logging.error(e)
+            log_error(e)
 
     def save(self):
         if self.filename is None:

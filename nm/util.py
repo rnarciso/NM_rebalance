@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 from tqdm import tqdm
 from functools import reduce
-from time import time as systime
+from time import time as sys_time
 
 if sys.version_info[:3] < (3, 7):
     import pickle5 as pickle
@@ -152,6 +152,15 @@ def safe_save(self, datafile=None) -> bool:
         return False
 
 
+def log_error(e):
+    exc_type, exc_obj, exc_tb = sys.exc_info()
+    if not isinstance(exc_tb, None):
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        logging.error(f'{e} Type: {exc_type}, File: {fname}, Line # {exc_tb.tb_lineno}')
+    else:
+        logging.error(f'{e} Type: {exc_type}, Line # {exc_tb.tb_lineno}')
+
+
 def make_bak_file(datafile):
     if os.path.exists(datafile):
         if os.path.exists(os.path.splitext(datafile)[0] + '.bak'):
@@ -221,7 +230,7 @@ def trim_run(method, *args, **kwargs):
 
 
 def patch_time(offset):
-    return systime() + offset
+    return sys_time() + offset
 
 
 tqdm.pandas()
