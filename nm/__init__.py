@@ -13,7 +13,7 @@ from itertools import combinations
 # noinspection PyPackageRequirements
 from binance.exceptions import BinanceAPIException
 
-# import constants from Clientraw_orders
+# import constants from Client
 for const in globals().copy().keys():
     if globals()[const] is None and Client.__dict__.get(const) is not None:
         globals()[const] = Client.__dict__[const]
@@ -21,11 +21,11 @@ for const in globals().copy().keys():
 
 class Fees:
 
-    def __init__(self, account=None, default_feetype='taker', datafile=None, load=False, ):
+    def __init__(self, account=None, default_fee_type='taker', datafile=None, load=False, ):
         self._df = None
         self._binance_api = account
         self._filename = datafile
-        self.default_feetype = default_feetype
+        self.default_fee_type = default_fee_type
         if load:
             self._df = self.load(datafile)
 
@@ -50,7 +50,7 @@ class Fees:
 
     def __getitem__(self, item):
         if item in self.df.T.keys():
-            return self.df.loc[item, self.default_feetype]
+            return self.df.loc[item, self.default_fee_type]
         else:
             raise KeyError
 
@@ -76,11 +76,11 @@ class Fees:
     def filename(self, value):
         self._filename = value
 
-    def for_symbols(self, symbols, feetype=None):
-        if feetype is None:
-            return self.df[self.df.index.isin([symbols])][self.default_feetype]
+    def for_symbols(self, symbols, fee_type=None):
+        if fee_type is None:
+            return self.df[self.df.index.isin([symbols])][self.default_fee_type]
         else:
-            return self.df[self.df.index.isin([symbols])][feetype]
+            return self.df[self.df.index.isin([symbols])][fee_type]
 
     # noinspection PyShadowingNames
     @property
@@ -107,9 +107,9 @@ class Fees:
     @property
     def last_update(self):
         try:
-            fname = pathlib.Path(self.filename)
-            assert fname.exists(), f'No such file: {fname}'
-            return pd.Timestamp.fromtimestamp(fname.stat().st_mtime)
+            file_name = pathlib.Path(self.filename)
+            assert file_name.exists(), f'No such file: {file_name}'
+            return pd.Timestamp.fromtimestamp(file_name.stat().st_mtime)
         except AssertionError as e:
             logging.debug(e)
             return tz_remove_and_normalize(EXCHANGE_OPENING_DATE)
@@ -244,9 +244,9 @@ class SymbolInfo:
     @property
     def last_update(self):
         try:
-            fname = pathlib.Path(self.filename)
-            assert fname.exists(), f'No such file: {fname}'
-            return pd.Timestamp.fromtimestamp(fname.stat().st_mtime)
+            file_name = pathlib.Path(self.filename)
+            assert file_name.exists(), f'No such file: {file_name}'
+            return pd.Timestamp.fromtimestamp(file_name.stat().st_mtime)
         except AssertionError as e:
             logging.debug(e)
             return tz_remove_and_normalize(EXCHANGE_OPENING_DATE)
@@ -548,26 +548,26 @@ class BinanceAccount:
     _time_offset: int
 
     # noinspection PyShadowingNames
-    def __init__(self, keyname: str = None, connect=False, include_locked=False, config=None):
+    def __init__(self, key_name: str = None, connect=False, include_locked=False, config=None):
         self._balance = {}
         self._client = None
-        if isinstance(keyname, dict):
-            self._config = keyname
-            keyname = config.get('account_name')
+        if isinstance(key_name, dict):
+            self._config = key_name
+            key_name = config.get('account_name')
         if isinstance(config, dict):
             self._config = config
-        if keyname is not None:
+        if key_name is not None:
             try:
                 from config import accounts
                 for account in accounts:
-                    if keyname == account.get('account_name'):
+                    if key_name == account.get('account_name'):
                         self._config = account
                         break
                 else:
                     self._config = accounts[0]
             except Exception as e:
                 log_error(e)
-            self._keyname = keyname
+            self._key_name = key_name
         self._include_locked_asset_in_balance = include_locked
         self._info = None
         self._min_notational = None
@@ -576,7 +576,7 @@ class BinanceAccount:
         self.lot_size = {}
         self.connected = False
         if connect:
-            self.connect(keyname)
+            self.connect(key_name)
 
     @property
     def time_offset(self):
@@ -654,7 +654,7 @@ class BinanceAccount:
     @property
     def client(self):
         if self._client is None:
-            self._client = self.connect(self.keyname)
+            self._client = self.connect(self.key_name)
         return self._client
 
     # noinspection PyShadowingNames
@@ -673,15 +673,15 @@ class BinanceAccount:
         self._config = values
 
     # noinspection PyUnboundLocalVariable,PyShadowingNames,PyShadowingNames,PyShadowingNames
-    def connect(self, keyname: str = None):
+    def connect(self, key_name: str = None):
         if not hasattr(self, '_config') or self._config is None:
-            if keyname is None:
-                keyname = 'binance'
+            if key_name is None:
+                key_name = 'binance'
             try:
                 with open(KEYFILE, 'r') as file:
                     __keys__ = file.read()
-                api_key = json.loads(__keys__)[f'{keyname}_key']
-                api_secret = json.loads(__keys__)[f'{keyname}_api_secret']
+                api_key = json.loads(__keys__)[f'{key_name}_key']
+                api_secret = json.loads(__keys__)[f'{key_name}_api_secret']
             except FileNotFoundError:
                 logging.info(' Key file not found!')
             except json.JSONDecodeError:
@@ -729,13 +729,13 @@ class BinanceAccount:
                     log_error(f'{e}. Assets: {small_balances}.')
 
     @property
-    def keyname(self):
+    def key_name(self):
         if hasattr(self, '_keyname'):
-            return self._keyname
+            return self._key_name
 
-    @keyname.setter
-    def keyname(self, value):
-        self._keyname = value
+    @key_name.setter
+    def key_name(self, value):
+        self._key_name = value
 
     @property
     def info(self):
@@ -770,7 +770,7 @@ class BinanceAccount:
                     raise KeyError
             except Exception as e:
                 logging.debug(e)
-                return '0.00100000'
+                return '0.001'
 
     # noinspection PyShadowingNames
     def refresh_balance(self, include_locked: bool = None):
@@ -1114,12 +1114,19 @@ class NMData:
     @property
     def last_update(self):
         try:
+            if 'date' in self.df.columns:
+                self.df = self.df.set_index('date')
+            last_update = self.df.index.max()
+            if not isinstance(last_update, pd.Timestamp):
+                raise ValueError
+        except ValueError:
             fname = pathlib.Path(self.filename)
             assert fname.exists(), f'No such file: {fname}'
-            return pd.Timestamp.fromtimestamp(fname.stat().st_mtime)
+            last_update = pd.Timestamp.fromtimestamp(fname.stat().st_mtime)
         except AssertionError as e:
             logging.debug(e)
-            return tz_remove_and_normalize(EXCHANGE_OPENING_DATE)
+            last_update = tz_remove_and_normalize(EXCHANGE_OPENING_DATE)
+        return last_update
 
     # noinspection PyShadowingNames
     def load(self, datafile=None):
