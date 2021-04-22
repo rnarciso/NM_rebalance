@@ -1914,7 +1914,7 @@ class TAData:
 
     @staticmethod
     def add_ta(df, from_date=None, risk_free_ratio=6 / 100, days_range=10, fillna=True,
-               add_next_day_results=False, pump_percentage=1.5, dump_percentage=-1.5):
+               add_next_day_results=True, pump_percentage=1.5, dump_percentage=-1.5):
         if not isinstance(df.index, pd.DatetimeIndex):
             df = df.set_index(OPEN_TIME)
         df = df[from_date:]

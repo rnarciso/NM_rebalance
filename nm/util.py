@@ -154,7 +154,7 @@ def safe_save(self, datafile=None) -> bool:
 
 def log_error(e):
     exc_type, exc_obj, exc_tb = sys.exc_info()
-    if not isinstance(exc_tb, None):
+    if exc_tb is not None:
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.error(f'{e} Type: {exc_type}, File: {fname}, Line # {exc_tb.tb_lineno}')
     else:
