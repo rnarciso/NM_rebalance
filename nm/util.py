@@ -35,9 +35,9 @@ FEES = 'Fees'
 FEES_DATA_FILE = os.path.join(DATA_FOLDER, 'fees.dat')
 KEYFILE = '.keys'
 INFOFILE = os.path.join(DATA_FOLDER, 'info.dat')
-
 MAKER_PREMIUM = 0.1 / 100
 MINIMUM_TIME_OFFSET = 2000
+MODELS_FILENAME = os.path.join(DATA_FOLDER, 'models.dat')
 NM_COLUMNS = ['symbol', 'price', 'NM1', 'NM2', 'NM3', 'NM4', 'date']
 NM_INFO_XLSX = '~/Downloads/NM_Guathan.xlsx'
 NM_MAX = 4

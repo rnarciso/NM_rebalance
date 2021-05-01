@@ -14,7 +14,7 @@ from nm.util import make_bak_file
 from deap.gp import PrimitiveTree
 from deap import tools, base, creator
 from tpot.builtins import StackingEstimator
-from nm.util import is_serializable, trim_run
+from nm.util import is_serializable, trim_run, MODELS_FILENAME
 from sklearn.model_selection import train_test_split
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import make_union, make_pipeline
@@ -30,8 +30,6 @@ SYMBOL = 'symbol'
 OPEN_TIME = 'date'
 
 DEFAULT_IMP_METHOD = 'coef'
-
-MODELS_FILENAME = 'models.dat'
 
 NON_SERIALIZABLE = ('_pop_', '_pareto_front', '_toolbox', '_pset', '_log_file', 'operators_context', 'log_file_',
                     'operators', 'arguments', 'warm_start', 'generations', '_pop', '_pbar')
