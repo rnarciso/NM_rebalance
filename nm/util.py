@@ -14,7 +14,7 @@ else:
 
 # noinspection PyBroadException
 try:
-    # noinspection PyPep8Naming
+    # noinspection PyPep8Naming,PyUnresolvedReferences,PyPackageRequirements
     from config import data_files_path as DATA_FOLDER
 except Exception as e:
     DATA_FOLDER = ''
@@ -152,13 +152,13 @@ def safe_save(self, datafile=None) -> bool:
         return False
 
 
-def log_error(e):
+def log_error(error):
     exc_type, exc_obj, exc_tb = sys.exc_info()
     if exc_tb is not None:
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logging.error(f'{e} Type: {exc_type}, File: {fname}, Line # {exc_tb.tb_lineno}')
+        module_name = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        logging.error(f'{error} Type: {exc_type}, Module: {module_name}, Line # {exc_tb.tb_lineno}')
     else:
-        logging.error(f'{e} Type: {exc_type}, Line # {exc_tb.tb_lineno}')
+        logging.error(f'{error} Type: {exc_type}')
 
 
 def make_bak_file(datafile):

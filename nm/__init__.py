@@ -1181,7 +1181,7 @@ class NMData:
                 else:
                     break
             else:
-                return nm_for_date[f'NM{nm_index}'].sort_values( ascending=False)
+                return nm_for_date[f'NM{nm_index}'].sort_values(ascending=False)
         raise IndexError
 
     # noinspection PyShadowingNames
@@ -1673,7 +1673,8 @@ class Rebalance:
                 if order['orderId'] < 0:
                     if order['status'] == 'Account has insufficient balance for requested action.':
                         order['quantity'] = str(self.account.round_right(
-                                self.account.balance.loc[QUOTE_ASSET, 'Amount'] / float(order['price']), order['symbol']))
+                                self.account.balance.loc[QUOTE_ASSET, 'Amount'] / float(order['price']),
+                                order['symbol']))
                 elif order['type'] == ORDER_TYPE_LIMIT_MAKER and 'take' in order['status']:
                     order['price'] = str(self.price_for_amount(order['symbol'], side=order['side'], maker=True))
                 elif order['status'] in (ORDER_STATUS_EXPIRED, ORDER_STATUS_CANCELED):
