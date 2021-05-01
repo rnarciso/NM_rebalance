@@ -1359,6 +1359,7 @@ class Rebalance:
         self.pending_orders = []
         self.subaccount = False
         self.top_n = 4
+        self.maker_order_book_position = {}
         self.set_attributes_from_config(**kwargs)
 
     @property
@@ -1509,6 +1510,7 @@ class Rebalance:
             except BinanceAPIException as e:
                 log_error(e)
         return order.get('status', 'CLOSED')
+
     # noinspection PyShadowingNames
     def order_trim(self,
                    pair,
@@ -1526,14 +1528,7 @@ class Rebalance:
             order_type = ORDER_TYPE_MARKET
         if order_time is None:
             order_time = TIME_IN_FORCE_GTC
-
-        try:
-            precision: float = float(self.account.step_size(pair))
-        except ValueError:
-            precision = 10 ** -5
-        if not precision > 0:
-            precision = 10 ** -5
-        amt_str = truncate(amount, precision)
+        amt_str = str(self.account.round_amount(amount, pair))
         price_str = str(self.account.round_price(price, pair))
         order = dict(symbol=pair, side=side, type=order_type, quantity=amt_str)
 
@@ -1554,22 +1549,51 @@ class Rebalance:
         return order
 
     # noinspection PyShadowingNames
-    def place_order(self, order, return_number_only=False, test_order=True):
+    def place_order(self, order, return_number_only=False, test_order=False):
+
+        def valid_order_params(order):
+            params = ['symbol',
+                      'side',
+                      'type',
+                      'timeInForce',
+                      'quantity',
+                      'quoteOrderQty',
+                      'price',
+                      'newClientOrderId',
+                      'icebergQty',
+                      'newOrderRespType',
+                      'recvWindow']
+
+            if order['type'] != ORDER_TYPE_LIMIT:
+                params.pop(params.index('timeInForce'))
+                params.pop(params.index('icebergQty'))
+            if order['type'] != ORDER_TYPE_MARKET:
+                params.pop(params.index('quoteOrderQty'))
+            else:
+                params.pop(params.index('price'))
+                if 'quoteOrderQty' in order.keys():
+                    params.pop(params.index('quantity'))
+            return params
+
         if test_order:
             min_notional = self.account.minimal_order(order.get('symbol'))
             order['quantity'] = self.account.round_amount((min_notional + 1) / float(order.get('price', 1)) +
                                                           float(self.account.step_size(order.get('symbol'))),
-                                                          order.get('symbol'))
+                                                          order['symbol'])
             if order['quantity'] < float(self.account.lotsize[order.get('symbol')].get('minQty', 0)):
-                order['quantity'] = self.account.lotsize[order.get('symbol')]['minQty']
-            else:
-                order['quantity'] = str(order['quantity'])
+                order['quantity'] = float(self.account.lotsize[order.get('symbol')]['minQty'])
+
         try:
             order.pop('validated')
+            logging.debug(f'order keys: {order.keys()}')
+            if isinstance(order['quantity'], float):
+                order['quantity'] = str(self.account.round_amount(order['quantity'], order['symbol']))
+            if isinstance(order['price'], float):
+                order['price'] = str(self.account.round_price(order['price'], order['symbol']))
         except KeyError:
             pass
         try:
-            status = self.account.create_order(**order)
+            status = self.account.create_order(**{k: v for k, v in order.items() if k in valid_order_params(order)})
         except BinanceAPIException as e:
             status = dict(orderId=e.code, status=e.message, symbol=order.get('symbol'))
         logging.debug(f'\n{status}\n')
@@ -1578,28 +1602,76 @@ class Rebalance:
         else:
             return {k: v for k, v in status.items() if k in ('orderId', 'symbol', 'status')}
 
-    async def _async_place_order(self, order_queue, timeout=5):
+    async def _async_place_order(self, order_queue, timeout=5, open_orders_timeout=60):
+        def reprice_maker_order(order):
+            if order.pop('maker_position', -1) > 5:
+                order['type'] = ORDER_TYPE_MARKET
+                order.pop('price')
+            else:
+                self.maker_order_book_position[order['symbol']] = order.get('maker_position', -2) + 1
+                order['price'] = self.price_for_amount(order['symbol'], amount=float(order['quantity']), maker=True)
+                order['maker_position'] = self.maker_order_book_position.get(order['symbol'], -1)
+
+        def reprice_limit_order(order):
+            if order.get('limit_retries', 5) < 1:
+                order['type'] = ORDER_TYPE_MARKET
+                order.pop('limit_retries')
+                order.pop('price')
+            else:
+                order['price'] = self.price_for_amount(order['symbol'], amount=float(order['quantity']))
+                order['limit_retries'] = order.get('limit_retries', 5) - 1
+
+        def trim_market_order(order):
+            if order.get('limit_retries', 5) < 1:
+                self.account.refresh_balance()
+                order['quoteOrderQty'] = self.account.balance.loc[QUOTE_ASSET, 'Amount']
+                order.pop('limit_retries')
+            else:
+                try:
+                    order['quoteOrderQty'] = float(order['price']) * float(order['quantity'])
+                except KeyError:
+                    order['quoteOrderQty'] *= 95/100
+                order['limit_retries'] = order.get('limit_retries', 5) - 1
+            try:
+                order.pop('price')
+                order.pop('quantity')
+            except KeyError:
+                pass
+
         while not order_queue.empty():
             order = await order_queue.get()
             logging.info(f'Place order for {order.get("symbol").replace(QUOTE_ASSET, "")}')
-            orderId = await self.place_order(order)
-            self.pending_orders += [orderId]
+            # noinspection PyPep8Naming
+            status = self.place_order(order);            order.update(status)
+            orderId = order.get('orderId', -1)
             if orderId < 1:
-                while True:
-                    open_orders = [o for o in self.account.get_open_orders()]
-                    open_order_ids = [o.get('orderId', -1) for o in open_orders]
-                    self.pending_orders = [o for o in self.pending_orders if o in open_order_ids]
-                    our_open_orders = [o for o in open_orders if open_order_ids in self.pending_orders]
-                    if len(our_open_orders) > 0:
-                        await asyncio.sleep(timeout)
-
-                    else:
-                        break
-
-
-
-
-            print(order)
+                logging.info(f'order failed: {order.get("status")}')
+                if order.get('status').find('match and take') < 0 <= order.get('status').find('balance'):
+                    while True:
+                        logging.info(f'Waiting for orders to be fullfilled')
+                        open_orders = [o for o in self.account.get_open_orders()]
+                        open_order_ids = [o.get('orderId', -1) for o in open_orders]
+                        self.pending_orders = [o for o in self.pending_orders if o in open_order_ids]
+                        our_open_orders = [o for o in open_orders if open_order_ids in self.pending_orders]
+                        for order in our_open_orders:
+                            if (pd.Timestamp.now('utc').astimezone(None) - pd.Timestamp.utcfromtimestamp(
+                                        order['time'] // 1000)).seconds > open_orders_timeout:
+                                self.account.cancel_order(symbol=order['symbol'], orderId=order['orderId'])
+                                logging.debug(f'Order {order} cancelled!')
+                        if len(our_open_orders) > 0:
+                            await asyncio.sleep(timeout)
+                        else:
+                            break
+            else:
+                self.pending_orders += [orderId]
+                if order['type'] == ORDER_TYPE_LIMIT_MAKER:
+                    reprice_maker_order(order)
+                elif order['type'] == ORDER_TYPE_LIMIT:
+                    reprice_limit_order(order)
+                else:
+                    trim_market_order(order)
+                logging.debug(f'Replacing {order} in queue!')
+                await order_queue.put(order)
 
     async def _async_place_orders(self, orders, workers=4):
         work_queue = asyncio.Queue()
@@ -1607,10 +1679,10 @@ class Rebalance:
             await work_queue.put(order)
         await asyncio.gather(*[asyncio.create_task(self._async_place_order(work_queue)) for w in range(workers)])
 
-    def async_place_orders(self, orders):
+    def place_orders(self, orders):
         return self._loop.run_until_complete(self._async_place_orders(orders))
 
-    def place_orders(self, orders, retries=5, open_orders_timeout=60):
+    def sequencial_place_orders(self, orders, retries=5, open_orders_timeout=60):
         orders_to_recycle = []
         for order in tqdm(orders, desc='placing orders'):
             self.account.refresh_balance()
@@ -1687,13 +1759,15 @@ class Rebalance:
         try:
             order_book = self.account.get_order_book(symbol=symbol)
             if maker:
-                maker_price_index = iter((-1, 0, 1, 2, 5, 10))
+                maker_price_index = iter((i for i in (-1, 0, 1, 2, 5, 10)
+                                          if i > self.maker_order_book_position.get(symbol, -2)))
                 while len(order_book) > 0:
                     i = next(maker_price_index)
                     if i < 0:
                         price = np.average([float(order_book['bids'][0][0]), float(order_book['bids'][0][0])])
                     else:
                         price = float(order_book['asks' if side == SIDE_SELL else 'bids'][i][0])
+                    self.maker_order_book_position[symbol] = i
                     order_book = self.account.get_order_book(symbol=symbol)
                     best_bid = float(order_book['bids'][0][0])
                     best_ask = float(order_book['asks'][0][0])
