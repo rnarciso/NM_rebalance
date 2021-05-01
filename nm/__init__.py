@@ -544,6 +544,7 @@ class Backtest:
                 consolidated_df = readjust_closure(consolidated_df, slippage=predicted_slippage)  # TODO fix this
 
 
+# noinspection PyShadowingNames
 class BinanceAccount:
     _time_offset: int
 
@@ -581,7 +582,7 @@ class BinanceAccount:
     @property
     def time_offset(self):
         if self._time_offset is None:
-            self._time_offset = (self._client.get_server_time().get("serverTime") - (systime() * 10 ** 3)) // 10 ** 3
+            self._time_offset = (self._client.get_server_time().get("serverTime") - (sys_time() * 10 ** 3)) // 10 ** 3
             time.time = partial(patch_time, self._time_offset)
         return self._time_offset
 
@@ -875,9 +876,9 @@ class CoinData:
     @property
     def last_update(self):
         try:
-            fname = pathlib.Path(self.filename)
-            assert fname.exists(), f'No such file: {fname}'
-            return pd.Timestamp.fromtimestamp(fname.stat().st_mtime)
+            filename = pathlib.Path(self.filename)
+            assert filename.exists(), f'No such file: {filename}'
+            return pd.Timestamp.fromtimestamp(filename.stat().st_mtime)
         except AssertionError as e:
             logging.debug(e)
             return tz_remove_and_normalize(EXCHANGE_OPENING_DATE)
@@ -1016,7 +1017,7 @@ class NMData:
         self._nm_url = nm_url
         self._df = None
         self._coin_data = None
-        self._ta = None
+        self._ta_data = None
         self._filename = datafile
         self.subset = ['price'] + [f'NM{i}' for i in range(1, 5)]
         if load and datafile is not None:
@@ -1120,9 +1121,9 @@ class NMData:
             if not isinstance(last_update, pd.Timestamp):
                 raise ValueError
         except ValueError:
-            fname = pathlib.Path(self.filename)
-            assert fname.exists(), f'No such file: {fname}'
-            last_update = pd.Timestamp.fromtimestamp(fname.stat().st_mtime)
+            filename = pathlib.Path(self.filename)
+            assert filename.exists(), f'No such file: {filename}'
+            last_update = pd.Timestamp.fromtimestamp(filename.stat().st_mtime)
         except AssertionError as e:
             logging.debug(e)
             last_update = tz_remove_and_normalize(EXCHANGE_OPENING_DATE)
@@ -1321,6 +1322,7 @@ class NMData:
         return self.coins.yield_for_coins(coins, from_date=date)
 
 
+# noinspection PyShadowingNames
 class Rebalance:
     def __init__(self, account_name, **kwargs):
         if isinstance(account_name, str):
@@ -1424,7 +1426,7 @@ class Rebalance:
                 tqdm.pandas()
                 if verbose:
                     new_balance[f'Target {QUOTE_ASSET} Value'] = (new_balance['Amount'] + new_balance['Order Size']
-                                                        ) * new_balance['Mean Price']
+                                                                  ) * new_balance['Mean Price']
                     quote_value = new_balance[f'Target {QUOTE_ASSET} Value'].sum()
                     new_balance['Target %'] = new_balance[f'Target {QUOTE_ASSET} Value'] / quote_value * 100
                     print(new_balance[['Amount', '%', 'Mean Price', 'Order Size', 'Target %',
@@ -1492,11 +1494,11 @@ class Rebalance:
                 log_error(e)
         return orders
 
-    def order_status(self, orderId):
+    def order_status(self, order_id):
         while True:
             try:
                 order = {'status': o.get('status') for o in self.account.get_open_orders()
-                         if o.get('orderId', -1) == orderId}
+                         if o.get('orderId', -1) == order_id}
                 break
             except BinanceAPIException as e:
                 log_error(e)
