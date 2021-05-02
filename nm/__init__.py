@@ -1676,11 +1676,13 @@ class Rebalance:
             logging.info(f' Waiting for orders to be filled')
             open_orders = [o for o in self.account.get_open_orders()]
             open_order_ids = [o.get('orderId', -1) for o in open_orders]
-            self.pending_orders = [o for o in self.pending_orders if o in open_order_ids]
-            our_open_orders = [o for o in open_orders if open_order_ids in self.pending_orders]
+            self.pending_orders = [o for o in self.pending_orders if o.get('orderId') in open_order_ids]
+            our_open_orders = [o for o in open_orders if open_order_ids in [o.get('orderId', -1)
+                               for o in self.pending_orders]]
             for order in our_open_orders:
                 if (pd.Timestamp.now('utc').astimezone(None) - pd.Timestamp.utcfromtimestamp(
                         order['time'] // 1000)).seconds > open_orders_timeout:
+                    self.pending_orders.pop(self.pending_orders.index(order))
                     self.account.cancel_order(symbol=order['symbol'], orderId=order['orderId'])
                     logging.debug(f' Order {order} cancelled!')
                     return order
