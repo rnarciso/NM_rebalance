@@ -4,9 +4,16 @@ accounts = [
     account_name='nm1',         # Account name
     api_key='',                 # Binance API key
     api_secret='',              # Binance API secret
-    index=1,                    # NM index to follow
+    distribution=   {1: 0.15,   # if present will distribute balance within different NM index
+                     2: 0.55,   # (i.e. 15% on NM1, 55% on NM2, 15% on NM3 and 15% on NM4).
+                     3: 0.15,
+                     4: 0.15}
+    index=1,                    # NM index to follow, ignored if distribution parameter is present in account config
     top_n=4,                    # Use Top N coins
-    rebalance_interval=24*60    # Interval between rebalance attempts in minutes
+    market_orders=False,        # Use market orders (fill faster but may increase slippage cost
+    market_maker=True,          # Use market maker order (reduce trading fees, but may take longer to fill)
+    rebalance_interval=24*60,   # Interval between rebalance attempts in minutes
+    subaccount=True,            # Consider whole balance of the account available, otherwise, only last day NM assets will count
         ),
     dict(
     account_name='nm2',         # Account name

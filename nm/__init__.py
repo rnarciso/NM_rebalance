@@ -65,7 +65,7 @@ class Fees:
     def filename(self):
         if self._filename is None:
             try:
-                # noinspection PyPep8Naming,PyShadowingNames
+                # noinspection PyPep8Naming,PyShadowingNames,PyUnresolvedReferences
                 from config import fees_file as FEES_DATA_FILE
             except (ImportError, ModuleNotFoundError):
                 # noinspection PyGlobalUndefined
@@ -139,6 +139,7 @@ class Fees:
         safe_save(self.df, self.filename)
 
 
+# noinspection PyUnresolvedReferences
 class SymbolInfo:
     def __init__(self, account=None, datafile=None, load=False):
         self._aggregated_info = None
@@ -548,7 +549,7 @@ class Backtest:
 class BinanceAccount:
     _time_offset: int
 
-    # noinspection PyShadowingNames
+    # noinspection PyShadowingNames,PyUnresolvedReferences
     def __init__(self, key_name: str = None, connect=False, include_locked=False, config=None):
         self._balance = {}
         self._client = None
@@ -609,9 +610,9 @@ class BinanceAccount:
         super().__getattribute__(attr)
 
     # noinspection PyShadowingNames
-    def avg_price(self, amount, market, side=SIDE_BUY, add_fee=True):
+    def book_avg_price(self, symbol, amount, side=SIDE_BUY, add_fee=True):
         try:
-            book_orders = self.get_order_book(symbol=market).get('asks' if side == SIDE_BUY else 'bids')
+            book_orders = self.get_order_book(symbol=symbol).get('asks' if side == SIDE_BUY else 'bids')
         except Exception as e:
             log_error(e)
             return 0.0, 0.0
@@ -723,6 +724,7 @@ class BinanceAccount:
         except ValueError:
             pass
         if len(small_balances) > 0:
+            # noinspection PyShadowingNames
             try:
                 self.transfer_dust(asset=','.join(small_balances))
             except BinanceAPIException as e:
@@ -747,12 +749,12 @@ class BinanceAccount:
     @property
     def lotsize(self):
         if self._lotsize is None:
-            self._lotsize = {k:dd for k, d in self.info.filters.items() for kk, dd in d.items() if kk == 'LOT_SIZE'}
+            self._lotsize = {k: dd for k, d in self.info.filters.items() for kk, dd in d.items() if kk == 'LOT_SIZE'}
         return self._lotsize
 
     def min_amount(self, pair):
         try:
-            return self.minimal_order(pair)  / float(self.get_avg_price(symbol=pair)['price'])
+            return self.minimal_order(pair) / float(self.get_avg_price(symbol=pair)['price'])
         except (KeyError, TypeError):
             return self.account.minimal_order(pair)
 
@@ -1338,6 +1340,7 @@ class NMData:
         return self.coins.yield_for_coins(coins, from_date=date)
 
 
+# noinspection PyShadowingNames
 class Rebalance:
     def __init__(self, account_name, **kwargs):
         if isinstance(account_name, str):
@@ -1479,6 +1482,7 @@ class Rebalance:
         else:
             return return_dict(0.0, 0.0)
 
+    # noinspection PyShadowingNames
     def mark_down_orders(self, orders):
         for order in orders:
             try:
@@ -1497,7 +1501,7 @@ class Rebalance:
         return orders
 
     def min_amount(self, symbol):
-        self.account.minimal_order()
+        self.account.minimal_order(symbol)
 
     def order_status(self, order_id):
         while True:
@@ -1601,6 +1605,7 @@ class Rebalance:
             return {k: v for k, v in status.items() if k in ('orderId', 'symbol', 'status')}
 
     async def _async_place_order(self, order_queue, timeout=5, open_orders_timeout=60):
+        # noinspection PyShadowingNames
         def reprice_maker_order(order):
             if order.pop('maker_position', -1) > 5:
                 order['type'] = ORDER_TYPE_MARKET
@@ -1626,7 +1631,8 @@ class Rebalance:
                 order.pop('limit_retries')
             else:
                 try:
-                    order['quoteOrderQty'] = float(order['price']) * float(order['quantity'])
+                    order['quoteOrderQty'] = float(self.account.get_avg_price(symbol=order['symbol'])['price']
+                                                   ) * float(order['quantity'])
                 except KeyError:
                     order['quoteOrderQty'] *= 95/100
                 order['limit_retries'] = order.get('limit_retries', 5) - 1
@@ -1640,9 +1646,10 @@ class Rebalance:
             order = await order_queue.get()
             logging.info(f'Place order for {order.get("symbol").replace(QUOTE_ASSET, "")}')
             # noinspection PyPep8Naming
-            status = self.place_order(order);            order.update(status)
-            orderId = order.get('orderId', -1)
-            if orderId < 1:
+            status = self.place_order(order)
+            order.update(status)
+            order_id = order.get('orderId', -1)
+            if order_id < 1:
                 logging.info(f'order failed: {order.get("status")}')
                 if order.get('status').find('match and take') < 0 <= order.get('status').find('balance'):
                     while True:
@@ -1660,27 +1667,27 @@ class Rebalance:
                             await asyncio.sleep(timeout)
                         else:
                             break
+
+            self.pending_orders += [order_id]
+            if order['type'] == ORDER_TYPE_LIMIT_MAKER:
+                reprice_maker_order(order)
+            elif order['type'] == ORDER_TYPE_LIMIT:
+                reprice_limit_order(order)
             else:
-                self.pending_orders += [orderId]
-                if order['type'] == ORDER_TYPE_LIMIT_MAKER:
-                    reprice_maker_order(order)
-                elif order['type'] == ORDER_TYPE_LIMIT:
-                    reprice_limit_order(order)
-                else:
-                    trim_market_order(order)
-                logging.debug(f'Replacing {order} in queue!')
-                await order_queue.put(order)
+                trim_market_order(order)
+            logging.debug(f'Replacing {order} in queue!')
+            await order_queue.put(order)
 
     async def _async_place_orders(self, orders, workers=4):
         work_queue = asyncio.Queue()
         for order in orders:
             await work_queue.put(order)
-        await asyncio.gather(*[asyncio.create_task(self._async_place_order(work_queue)) for w in range(workers)])
+        await asyncio.gather(*[asyncio.create_task(self._async_place_order(work_queue)) for _ in range(workers)])
 
     def place_orders(self, orders):
         return self._loop.run_until_complete(self._async_place_orders(orders))
 
-    def sequencial_place_orders(self, orders, retries=5, open_orders_timeout=60):
+    def sequencial_place_orders(self, orders, open_orders_timeout=60):
         orders_to_recycle = []
         for order in tqdm(orders, desc='placing orders'):
             self.account.refresh_balance()
@@ -1717,7 +1724,7 @@ class Rebalance:
                 break
         orders_to_recycle = [o for o in self.refresh_order_status(orders_to_recycle) if o.get('status') != 'FILLED']
         if len(orders_to_recycle) > 0:
-            self.place_orders(self.recycle_orders(orders_to_recycle), retries=retries)
+            self.place_orders(self.recycle_orders(orders_to_recycle))
 
     # def place_orders(self, orders):
     #     # noinspection PyShadowingNames
