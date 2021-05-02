@@ -1673,7 +1673,7 @@ class Rebalance:
 
     async def wait_open_orders(self, timeout, open_orders_timeout):
         while True:
-            logging.info(f'Waiting for orders to be fullfilled')
+            logging.info(f' Waiting for orders to be filled')
             open_orders = [o for o in self.account.get_open_orders()]
             open_order_ids = [o.get('orderId', -1) for o in open_orders]
             self.pending_orders = [o for o in self.pending_orders if o in open_order_ids]
@@ -1682,12 +1682,12 @@ class Rebalance:
                 if (pd.Timestamp.now('utc').astimezone(None) - pd.Timestamp.utcfromtimestamp(
                         order['time'] // 1000)).seconds > open_orders_timeout:
                     self.account.cancel_order(symbol=order['symbol'], orderId=order['orderId'])
-                    logging.debug(f'Order {order} cancelled!')
+                    logging.debug(f' Order {order} cancelled!')
+                    return order
             if len(our_open_orders) > 0:
                 await asyncio.sleep(timeout)
             else:
                 return
-        return order
 
     async def _async_place_orders(self, orders, workers=4):
         work_queue = asyncio.Queue()
@@ -1698,7 +1698,7 @@ class Rebalance:
     def place_orders(self, orders):
         return self._loop.run_until_complete(self._async_place_orders(orders))
 
-    def sequencial_place_orders(self, orders, open_orders_timeout=60):
+    def sequential_place_orders(self, orders, open_orders_timeout=60):
         orders_to_recycle = []
         for order in tqdm(orders, desc='placing orders'):
             self.account.refresh_balance()
