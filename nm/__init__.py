@@ -637,7 +637,7 @@ class BinanceAccount:
                 if not amount_left > 0:
                     break
             if add_fee:
-                fee = self.fees[market]
+                fee = self.fees[symbol]
                 cost *= 1 + fee
 
             return dict(price=avg_price, quote_amount=cost)
@@ -1656,23 +1656,12 @@ class Rebalance:
             if order_id < 1:
                 logging.info(f'order failed: {order.get("status")}')
                 if order.get('status').find('match and take') < 0 <= order.get('status').find('balance'):
-                    while True:
-                        logging.info(f'Waiting for orders to be fullfilled')
-                        open_orders = [o for o in self.account.get_open_orders()]
-                        open_order_ids = [o.get('orderId', -1) for o in open_orders]
-                        self.pending_orders = [o for o in self.pending_orders if o in open_order_ids]
-                        our_open_orders = [o for o in open_orders if open_order_ids in self.pending_orders]
-                        for order in our_open_orders:
-                            if (pd.Timestamp.now('utc').astimezone(None) - pd.Timestamp.utcfromtimestamp(
-                                        order['time'] // 1000)).seconds > open_orders_timeout:
-                                self.account.cancel_order(symbol=order['symbol'], orderId=order['orderId'])
-                                logging.debug(f'Order {order} cancelled!')
-                        if len(our_open_orders) > 0:
-                            await asyncio.sleep(timeout)
-                        else:
-                            break
-
-            self.pending_orders += [order_id]
+                    order = await self.wait_open_orders(timeout, open_orders_timeout)
+            else:
+                self.pending_orders += [order]
+                order = await self.wait_open_orders(timeout, open_orders_timeout)
+                if order is None:
+                    return
             if order['type'] == ORDER_TYPE_LIMIT_MAKER:
                 reprice_maker_order(order)
             elif order['type'] == ORDER_TYPE_LIMIT:
@@ -1681,6 +1670,24 @@ class Rebalance:
                 trim_market_order(order)
             logging.debug(f'Replacing {order} in queue!')
             await order_queue.put(order)
+
+    async def wait_open_orders(self, timeout, open_orders_timeout):
+        while True:
+            logging.info(f'Waiting for orders to be fullfilled')
+            open_orders = [o for o in self.account.get_open_orders()]
+            open_order_ids = [o.get('orderId', -1) for o in open_orders]
+            self.pending_orders = [o for o in self.pending_orders if o in open_order_ids]
+            our_open_orders = [o for o in open_orders if open_order_ids in self.pending_orders]
+            for order in our_open_orders:
+                if (pd.Timestamp.now('utc').astimezone(None) - pd.Timestamp.utcfromtimestamp(
+                        order['time'] // 1000)).seconds > open_orders_timeout:
+                    self.account.cancel_order(symbol=order['symbol'], orderId=order['orderId'])
+                    logging.debug(f'Order {order} cancelled!')
+            if len(our_open_orders) > 0:
+                await asyncio.sleep(timeout)
+            else:
+                return
+        return order
 
     async def _async_place_orders(self, orders, workers=4):
         work_queue = asyncio.Queue()
