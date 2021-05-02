@@ -14,7 +14,7 @@ from nm.util import make_bak_file
 from deap.gp import PrimitiveTree
 from deap import tools, base, creator
 from tpot.builtins import StackingEstimator
-from nm.util import is_serializable, trim_run, MODELS_FILENAME
+from nm.util import is_serializable, trim_run
 from sklearn.model_selection import train_test_split
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import make_union, make_pipeline
@@ -200,7 +200,7 @@ class Model:
                 return Regressor
 
 
-# noinspection PyTypeChecker
+# noinspection PyTypeChecker,PyGlobalUndefined
 class MarketModels:
 
     def __init__(self, filename=None, load=True):
@@ -253,7 +253,7 @@ class MarketModels:
                 # noinspection PyPep8Naming,PyShadowingNames,PyUnresolvedReferences,PyPackageRequirements
                 from config import ml_models as MODELS_FILENAME
             except (ImportError, ModuleNotFoundError):
-                global MODELS_FILENAME
+                from nm.util import MODELS_FILENAME
             self._filename = MODELS_FILENAME
         return self._filename
 

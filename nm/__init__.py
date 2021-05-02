@@ -89,7 +89,7 @@ class Fees:
             if self._df is None:
                 self._df = self.load(self.filename)
             if tz_remove_and_normalize('now') - self.last_update > pd.Timedelta(1, 'day'):
-                self._df = pd.DataFrame.from_dict(self.get_trade_fee()['tradeFee']).set_index('symbol')
+                self._df = pd.DataFrame.from_dict(self.get_trade_fee['tradeFee']).set_index('symbol')
                 self.save()
         except Exception as e:
             log_error(e)
@@ -98,6 +98,10 @@ class Fees:
     @df.setter
     def df(self, value):
         self._df = value
+
+    @property
+    def get_trade_fee(self):
+        return self.binance_api.get_trade_fee()
 
     @property
     def index(self):
@@ -568,7 +572,7 @@ class BinanceAccount:
                     self._config = accounts[0]
             except Exception as e:
                 log_error(e)
-            self._key_name = key_name
+                self._key_name = key_name
         self._include_locked_asset_in_balance = include_locked
         self._info = None
         self._min_notational = None
