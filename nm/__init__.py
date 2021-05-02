@@ -1,6 +1,7 @@
 import ta
 import json
 import time
+import asyncio
 import pathlib
 import warnings
 import numpy as np
@@ -64,7 +65,7 @@ class Fees:
     def filename(self):
         if self._filename is None:
             try:
-                # noinspection PyPep8Naming,PyShadowingNames
+                # noinspection PyPep8Naming,PyShadowingNames,PyUnresolvedReferences
                 from config import fees_file as FEES_DATA_FILE
             except (ImportError, ModuleNotFoundError):
                 # noinspection PyGlobalUndefined
@@ -142,6 +143,7 @@ class Fees:
         safe_save(self.df, self.filename)
 
 
+# noinspection PyUnresolvedReferences
 class SymbolInfo:
     def __init__(self, account=None, datafile=None, load=False):
         self._aggregated_info = None
@@ -548,11 +550,10 @@ class Backtest:
                 consolidated_df = readjust_closure(consolidated_df, slippage=predicted_slippage)  # TODO fix this
 
 
-# noinspection PyShadowingNames
 class BinanceAccount:
     _time_offset: int
 
-    # noinspection PyShadowingNames
+    # noinspection PyShadowingNames,PyUnresolvedReferences
     def __init__(self, key_name: str = None, connect=False, include_locked=False, config=None):
         self._balance = {}
         self._client = None
@@ -576,9 +577,9 @@ class BinanceAccount:
         self._include_locked_asset_in_balance = include_locked
         self._info = None
         self._min_notational = None
+        self._lotsize = None
         self._time_offset = 0
         self.fees = Fees(self)
-        self.lot_size = {}
         self.connected = False
         if connect:
             self.connect(key_name)
@@ -613,9 +614,9 @@ class BinanceAccount:
         super().__getattribute__(attr)
 
     # noinspection PyShadowingNames
-    def avg_price(self, amount, market, side=SIDE_BUY, add_fee=True):
+    def book_avg_price(self, symbol, amount, side=SIDE_BUY, add_fee=True):
         try:
-            book_orders = self.get_order_book(symbol=market).get('asks' if side == SIDE_BUY else 'bids')
+            book_orders = self.get_order_book(symbol=symbol).get('asks' if side == SIDE_BUY else 'bids')
         except Exception as e:
             log_error(e)
             return 0.0, 0.0
@@ -727,6 +728,7 @@ class BinanceAccount:
         except ValueError:
             pass
         if len(small_balances) > 0:
+            # noinspection PyShadowingNames
             try:
                 self.transfer_dust(asset=','.join(small_balances))
             except BinanceAPIException as e:
@@ -747,6 +749,18 @@ class BinanceAccount:
         if self._info is None:
             self._info = SymbolInfo(self)
         return self._info
+
+    @property
+    def lotsize(self):
+        if self._lotsize is None:
+            self._lotsize = {k: dd for k, d in self.info.filters.items() for kk, dd in d.items() if kk == 'LOT_SIZE'}
+        return self._lotsize
+
+    def min_amount(self, pair):
+        try:
+            return self.minimal_order(pair) / float(self.get_avg_price(symbol=pair)['price'])
+        except (KeyError, TypeError):
+            return self.account.minimal_order(pair)
 
     # noinspection PyShadowingNames
     @property
@@ -801,7 +815,7 @@ class BinanceAccount:
         return pd.Series(self._balance).sort_values()
 
     # noinspection PyShadowingNames
-    def round_right(self, value, pair, recursive=False):
+    def round_price(self, value, pair, recursive=False):
         try:
             decimals = int(round(-math.log10(float(self.info.filters[pair]['PRICE_FILTER']['tickSize'])), 0))
             return round(value, decimals)
@@ -809,12 +823,16 @@ class BinanceAccount:
             try:
                 self.info.get_info_from_binance(pair)
                 if not recursive:
-                    return self.round_right(value, pair, True)
+                    return self.round_price(value, pair, True)
                 else:
                     raise KeyError
             except Exception as e:
                 logging.debug(e)
                 return round(value, 2)
+
+    def round_amount(self, value, pair):
+        decimals = int(round(-math.log10(float(self.step_size(pair)))))
+        return round(value, decimals)
 
 
 class CoinData:
@@ -1095,11 +1113,11 @@ class NMData:
                                 for df in (pd.read_excel(filename, f'NM{i + 1}') for i in tqdm(range(4)))]).rename(
                                 {'Data': 'date', 'Moeda': 'symbol'}, axis='columns').drop_duplicates().reset_index(
                                 drop=True)
-        imported_nm.symbol = imported_nm.symbol.str.replace('USDT', '')
+        imported_nm.symbol = imported_nm.symbol.str.replace(QUOTE_ASSET, '')
         imported_nm.date = pd.to_datetime(imported_nm.date, errors='coerce')
         imported_nm = imported_nm[~imported_nm.date.isna()]
         imported_nm.index = pd.DatetimeIndex(
-                imported_nm.date).tz_localize('utc').tz_convert('Brazil/East').tz_localize(None)
+                imported_nm.date).tz_localize('utc').tz_convert(NM_TIME_ZONE).tz_localize(None)
         imported_nm = imported_nm.drop('date', axis=1)
         history = self.df
         if len(history) > 0:
@@ -1205,14 +1223,14 @@ class NMData:
         df = pd.DataFrame()
         for i in range(1, NM_MAX + 1):
             try:
-                mndf = pd.read_html(url + str(i), decimal=',', thousands='.')[0]
-                date = pd.to_datetime(mndf.iloc[-1][0].replace(UPDATED_ON, '').replace(AT_SIGN, ' '), dayfirst=True)
+                nm_df = pd.read_html(url + str(i), decimal=',', thousands='.')[0]
+                date = pd.to_datetime(nm_df.iloc[-1][0].replace(UPDATED_ON, '').replace(AT_SIGN, ' '), dayfirst=True)
                 if date > max_date:
-                    mndf['date'] = date
-                    mndf.columns = NM_COLUMNS
-                    mndf = mndf.drop(index=[0, 1, mndf.index.max()], columns=['price'])
-                    mndf = mndf.applymap(partial(pd.to_numeric, errors='ignore'))
-                    df = df.append(mndf)
+                    nm_df['date'] = date
+                    nm_df.columns = NM_COLUMNS
+                    nm_df = nm_df.drop(index=[0, 1, nm_df.index.max()], columns=['price'])
+                    nm_df = nm_df.applymap(partial(pd.to_numeric, errors='ignore'))
+                    df = df.append(nm_df)
                 else:
                     break
             except Exception as e:
@@ -1338,38 +1356,25 @@ class Rebalance:
             self.account = account_name
         else:
             self.account = BinanceAccount()
-
+        self._loop = asyncio.get_event_loop()
         self.nm_data = NMData()
         self.fees = Fees()
-        self.market_orders = False
-        self.market_maker = True
-        self.running_in_subaccount = True
+        self.market_orders = True
+        self.market_maker = False
+        self.pending_orders = []
+        self.subaccount = False
         self.top_n = 4
+        self.maker_order_book_position = {}
         self.set_attributes_from_config(**kwargs)
 
     @property
     def nm_index(self):
         return self.account.index
 
-    def trim_target(self, target):
-        # TODO adjust target to simple list
-        if isinstance(target, dict):
-            if all([isinstance(k, int) for k in target.keys()]):
-                # noinspection PyArgumentList
-                target = pd.DataFrame({index: {coin: percentage / self.top_n
-                                       for coin in self.nm_data.get(index).index[:self.top_n]}
-                                       for index, percentage in target.items()}).T.sum().to_dict()
-            else:
-                total = sum(target.values())
-                target = {k: v / total for k, v in target.items()}
-        else:
-            target = {k: 1/len(target) for k in target}
-        return target
-
     def create_orders(self, target=None, market_orders=None, refresh_mean_price=False, threshold=1/100, verbose=True,
                       maker_order=None):
         balance = self.account.balance.copy()
-        if not self.running_in_subaccount:
+        if not self.subaccount:
             last_nm_coins = self.nm_data.get(self.nm_index, next_date(tz_remove_and_normalize('utc'), -1)
                                              ).index[:self.top_n]
             balance = balance[balance.index.isin(last_nm_coins)]
@@ -1400,7 +1405,7 @@ class Rebalance:
             while True:
                 net_result = (new_balance['Order Size'] * new_balance['Mean Price']).sum()
                 if net_result > 0:
-                    buys = new_balance['Order Size'] > 0
+                    buys = new_balance['Order Size'] > 0.01
                     logging.info(' Trimming orders to fit total account value!')
                     ratio = math.ceil(net_result / (new_balance.loc[buys, quote_asset_value_] *
                                                     new_balance.loc[buys, '% diff'] / 100).sum() * 1000) / 1000
@@ -1481,6 +1486,7 @@ class Rebalance:
         else:
             return return_dict(0.0, 0.0)
 
+    # noinspection PyShadowingNames
     def mark_down_orders(self, orders):
         for order in orders:
             try:
@@ -1488,8 +1494,8 @@ class Rebalance:
                 amount = float(order.get('quantity'))
                 side = order.get('side')
                 maker = order.get('side') == ORDER_TYPE_LIMIT_MAKER
-                order['price'] = str(self.account.round_right(
-                        self.price_for_amount(pair, amount=amount, side=side, maker=maker), pair))
+                order['price'] = str(
+                    self.account.round_price(self.price_for_amount(pair, amount=amount, side=side, maker=maker), pair))
                 order.pop('orderId')
                 order.pop('status')
             except KeyError:
@@ -1497,6 +1503,9 @@ class Rebalance:
             except Exception as e:
                 log_error(e)
         return orders
+
+    def min_amount(self, symbol):
+        self.account.minimal_order(symbol)
 
     def order_status(self, order_id):
         while True:
@@ -1507,26 +1516,6 @@ class Rebalance:
             except BinanceAPIException as e:
                 log_error(e)
         return order.get('status', 'CLOSED')
-
-    def refresh_order_status(self, orders):
-        for order in orders:
-            try:
-                status = order.get("status", 'UNKNOWN')
-                order_id = order.get("orderId", -1)
-                if order_id > 0 and status != ORDER_STATUS_FILLED:
-                    try:
-                        status = self.account.get_order(symbol=order.get("symbol"),
-                                                        orderId=order.get("orderId", {status: 'UNKNOWN'}))["status"]
-                    except BinanceAPIException as e:
-                        if str(e).find('Order does not exist') > -1:
-                            status = 'FILLED'
-                        else:
-                            log_error(e)
-                    order['status'] = status
-                logging.debug(f' Order # {order_id}: {status}')
-            except Exception as e:
-                log_error(e)
-        return orders
 
     # noinspection PyShadowingNames
     def order_trim(self,
@@ -1545,15 +1534,8 @@ class Rebalance:
             order_type = ORDER_TYPE_MARKET
         if order_time is None:
             order_time = TIME_IN_FORCE_GTC
-
-        try:
-            precision: float = float(self.account.step_size(pair))
-        except ValueError:
-            precision = 10 ** -5
-        if not precision > 0:
-            precision = 10 ** -5
-        amt_str = truncate(amount, precision)
-        price_str = str(self.account.round_right(price, pair))
+        amt_str = str(self.account.round_amount(amount, pair))
+        price_str = str(self.account.round_price(price, pair))
         order = dict(symbol=pair, side=side, type=order_type, quantity=amt_str)
 
         if order_type not in [ORDER_TYPE_MARKET]:
@@ -1573,13 +1555,51 @@ class Rebalance:
         return order
 
     # noinspection PyShadowingNames
-    def place_order(self, order, return_number_only=False):
+    def place_order(self, order, return_number_only=False, test_order=False):
+
+        def valid_order_params(order):
+            params = ['symbol',
+                      'side',
+                      'type',
+                      'timeInForce',
+                      'quantity',
+                      'quoteOrderQty',
+                      'price',
+                      'newClientOrderId',
+                      'icebergQty',
+                      'newOrderRespType',
+                      'recvWindow']
+
+            if order['type'] != ORDER_TYPE_LIMIT:
+                params.pop(params.index('timeInForce'))
+                params.pop(params.index('icebergQty'))
+            if order['type'] != ORDER_TYPE_MARKET:
+                params.pop(params.index('quoteOrderQty'))
+            else:
+                params.pop(params.index('price'))
+                if 'quoteOrderQty' in order.keys():
+                    params.pop(params.index('quantity'))
+            return params
+
+        if test_order:
+            min_notional = self.account.minimal_order(order.get('symbol'))
+            order['quantity'] = self.account.round_amount((min_notional + 1) / float(order.get('price', 1)) +
+                                                          float(self.account.step_size(order.get('symbol'))),
+                                                          order['symbol'])
+            if order['quantity'] < float(self.account.lotsize[order.get('symbol')].get('minQty', 0)):
+                order['quantity'] = float(self.account.lotsize[order.get('symbol')]['minQty'])
+
         try:
             order.pop('validated')
+            logging.debug(f'order keys: {order.keys()}')
+            if isinstance(order['quantity'], float):
+                order['quantity'] = str(self.account.round_amount(order['quantity'], order['symbol']))
+            if isinstance(order['price'], float):
+                order['price'] = str(self.account.round_price(order['price'], order['symbol']))
         except KeyError:
             pass
         try:
-            status = self.account.create_order(**order)
+            status = self.account.create_order(**{k: v for k, v in order.items() if k in valid_order_params(order)})
         except BinanceAPIException as e:
             status = dict(orderId=e.code, status=e.message, symbol=order.get('symbol'))
         logging.debug(f'\n{status}\n')
@@ -1588,52 +1608,183 @@ class Rebalance:
         else:
             return {k: v for k, v in status.items() if k in ('orderId', 'symbol', 'status')}
 
-    def place_orders(self, orders):
+    async def _async_place_order(self, order_queue, timeout=5, open_orders_timeout=60):
         # noinspection PyShadowingNames
-
-        # noinspection PyShadowingNames
-        def status_for_id(order_id=None):
-            status = {d.get('orderId', 0): d.get('status', 'UNKNOWN') for d in orders}
-            if order_id is None:
-                return status
+        def reprice_maker_order(order):
+            if order.pop('maker_position', -1) > 5:
+                order['type'] = ORDER_TYPE_MARKET
+                order.pop('price')
             else:
-                return status.get(order_id)
+                self.maker_order_book_position[order['symbol']] = order.get('maker_position', -2) + 1
+                order['price'] = self.price_for_amount(order['symbol'], amount=float(order['quantity']), maker=True)
+                order['maker_position'] = self.maker_order_book_position.get(order['symbol'], -1)
 
-        for order in tqdm(orders, desc='placing orders'):
-            if order['side'] == 'BUY' and len(orders) > 0:
-                while True:
-                    pending_orders = any([status_for_id(o['OrderId']) in (
-                        ORDER_STATUS_NEW, ORDER_STATUS_PARTIALLY_FILLED, ORDER_STATUS_PENDING_CANCEL) for o in orders
-                                             if o.get('OrderId', -1) > 0 and o.get('side') == SIDE_SELL])
-                    if pending_orders:
-                        time.sleep(30)
-                        self.refresh_order_status(orders)
-                    else:
-                        break
-                unfilled_orders = [o for o in orders if status_for_id(o.get('orderId', -1)) in (
-                    ORDER_STATUS_CANCELED, ORDER_STATUS_EXPIRED, ORDER_STATUS_REJECTED, 'UNKNOWN')]
-                if len(unfilled_orders) > 1:
-                    self.mark_down_orders(unfilled_orders)
-                    return self.place_orders(unfilled_orders)
+        def reprice_limit_order(order):
+            if order.get('limit_retries', 5) < 1:
+                order['type'] = ORDER_TYPE_MARKET
+                order.pop('limit_retries')
+                order.pop('price')
+            else:
+                order['price'] = self.price_for_amount(order['symbol'], amount=float(order['quantity']))
+                order['limit_retries'] = order.get('limit_retries', 5) - 1
+
+        def trim_market_order(order):
+            if order.get('limit_retries', 5) < 1:
+                self.account.refresh_balance()
+                order['quoteOrderQty'] = self.account.balance.loc[QUOTE_ASSET, 'Amount']
+                order.pop('limit_retries')
+            else:
+                try:
+                    order['quoteOrderQty'] = float(self.account.get_avg_price(symbol=order['symbol'])['price']
+                                                   ) * float(order['quantity'])
+                except KeyError:
+                    order['quoteOrderQty'] *= 95/100
+                order['limit_retries'] = order.get('limit_retries', 5) - 1
+            try:
+                order.pop('price')
+                order.pop('quantity')
+            except KeyError:
+                pass
+
+        while not order_queue.empty():
+            order = await order_queue.get()
+            logging.info(f'Place order for {order.get("symbol").replace(QUOTE_ASSET, "")}')
             # noinspection PyPep8Naming
             status = self.place_order(order)
             order.update(status)
+            order_id = order.get('orderId', -1)
+            if order_id < 1:
+                logging.info(f'order failed: {order.get("status")}')
+                if order.get('status').find('match and take') < 0 <= order.get('status').find('balance'):
+                    while True:
+                        logging.info(f'Waiting for orders to be fullfilled')
+                        open_orders = [o for o in self.account.get_open_orders()]
+                        open_order_ids = [o.get('orderId', -1) for o in open_orders]
+                        self.pending_orders = [o for o in self.pending_orders if o in open_order_ids]
+                        our_open_orders = [o for o in open_orders if open_order_ids in self.pending_orders]
+                        for order in our_open_orders:
+                            if (pd.Timestamp.now('utc').astimezone(None) - pd.Timestamp.utcfromtimestamp(
+                                        order['time'] // 1000)).seconds > open_orders_timeout:
+                                self.account.cancel_order(symbol=order['symbol'], orderId=order['orderId'])
+                                logging.debug(f'Order {order} cancelled!')
+                        if len(our_open_orders) > 0:
+                            await asyncio.sleep(timeout)
+                        else:
+                            break
+
+            self.pending_orders += [order_id]
+            if order['type'] == ORDER_TYPE_LIMIT_MAKER:
+                reprice_maker_order(order)
+            elif order['type'] == ORDER_TYPE_LIMIT:
+                reprice_limit_order(order)
+            else:
+                trim_market_order(order)
+            logging.debug(f'Replacing {order} in queue!')
+            await order_queue.put(order)
+
+    async def _async_place_orders(self, orders, workers=4):
+        work_queue = asyncio.Queue()
+        for order in orders:
+            await work_queue.put(order)
+        await asyncio.gather(*[asyncio.create_task(self._async_place_order(work_queue)) for _ in range(workers)])
+
+    def place_orders(self, orders):
+        return self._loop.run_until_complete(self._async_place_orders(orders))
+
+    def sequencial_place_orders(self, orders, open_orders_timeout=60):
+        orders_to_recycle = []
+        for order in tqdm(orders, desc='placing orders'):
+            self.account.refresh_balance()
+            if order['side'] == SIDE_BUY:
+                if order['type'] != ORDER_TYPE_LIMIT:
+                    price = self.price_for_amount(order.get('symbol'), float(order.get('quantity')), SIDE_BUY,
+                                                  maker=order['type'] == ORDER_TYPE_LIMIT_MAKER)
+                else:
+                    price = float(order['price'])
+                max_price = self.account.balance.loc['USDT', 'Amount'] / float(order['quantity'])
+                if price < max_price:
+                    order.update(self.place_order(order))
+            else:
+                if self.account.balance.loc[order['symbol'].replace(QUOTE_ASSET, ''), 'Amount'] >= float(
+                        order['quantity']):
+                    order.update(self.place_order(order))
         else:
-            self.refresh_order_status(orders)
-            return all([s == ORDER_STATUS_FILLED for s in status_for_id().values()])
+            for order in orders:
+                if order.get('orderId', -1) < 1:
+                    orders_to_recycle += [order]
+        while True:
+            open_orders = [o for o in self.account.get_open_orders() if o.get('orderId') in
+                           [o.get('orderId', -1) for o in orders]+[-1]]
+            if len(open_orders) > 1:
+                for order in tqdm(open_orders, desc='Waiting for open orders to be filled'):
+                    if (pd.Timestamp.now('utc').astimezone(None) - pd.Timestamp.utcfromtimestamp(
+                            order['time'] // 1000)).seconds > open_orders_timeout:
+                        orders_to_recycle += [{k if k != 'origQty' else 'quantity': v for k, v in order.items()
+                                               if k in ('symbol', 'price', 'type', 'side', 'origQty', 'orderId',
+                                               'status')}]
+                        self.account.cancel_order(symbol=order['symbol'], orderId=order['orderId'])
+                time.sleep(5)
+            else:
+                break
+        orders_to_recycle = [o for o in self.refresh_order_status(orders_to_recycle) if o.get('status') != 'FILLED']
+        if len(orders_to_recycle) > 0:
+            self.place_orders(self.recycle_orders(orders_to_recycle))
+
+    # def place_orders(self, orders):
+    #     # noinspection PyShadowingNames
+    #
+    #     # noinspection PyShadowingNames
+    #     def status_for_id(order_id=None):
+    #         status = {d.get('orderId', 0): d.get('status', 'UNKNOWN') for d in orders}
+    #         if order_id is None:
+    #             return status
+    #         else:
+    #             return status.get(order_id)
+    #
+    #     for order in tqdm(orders, desc='placing orders'):
+    #         if order['side'] == 'BUY' and len(orders) > 0:
+    #             while True:
+    #                 pending_orders = any([status_for_id(o['OrderId']) in (
+    #                     ORDER_STATUS_NEW, ORDER_STATUS_PARTIALLY_FILLED, ORDER_STATUS_PENDING_CANCEL) for o in orders
+    #                                          if o.get('OrderId', -1) > 0 and o.get('side') == SIDE_SELL])
+    #                 if pending_orders:
+    #                     time.sleep(30)
+    #                     self.refresh_order_status(orders)
+    #                 else:
+    #                     break
+    #             unfilled_orders = [o for o in orders if status_for_id(o.get('orderId', -1)) in (
+    #                 ORDER_STATUS_CANCELED, ORDER_STATUS_EXPIRED, ORDER_STATUS_REJECTED, 'UNKNOWN')]
+    #             if len(unfilled_orders) > 1:
+    #                 self.mark_down_orders(unfilled_orders)
+    #                 return self.place_orders(unfilled_orders)
+    #         # noinspection PyPep8Naming
+    #         status = self.place_order(order)
+    #         order.update(status)
+    #     else:
+    #         self.refresh_order_status(orders)
+    #         return all([s == ORDER_STATUS_FILLED for s in status_for_id().values()])
 
     def price_for_amount(self, symbol, amount=None, side=SIDE_BUY, maker=False):
         try:
             order_book = self.account.get_order_book(symbol=symbol)
             if maker:
-                while True:
+                maker_price_index = iter((i for i in (-1, 0, 1, 2, 5, 10)
+                                          if i > self.maker_order_book_position.get(symbol, -2)))
+                while len(order_book) > 0:
+                    i = next(maker_price_index)
+                    if i < 0:
+                        price = np.average([float(order_book['bids'][0][0]), float(order_book['bids'][0][0])])
+                    else:
+                        price = float(order_book['asks' if side == SIDE_SELL else 'bids'][i][0])
+                    self.maker_order_book_position[symbol] = i
+                    order_book = self.account.get_order_book(symbol=symbol)
                     best_bid = float(order_book['bids'][0][0])
                     best_ask = float(order_book['asks'][0][0])
-                    price = self.account.round_right(np.mean([best_bid, best_ask]), symbol)
-                    if price not in (best_bid, best_ask):
+                    if (side == SIDE_BUY and price < best_ask) or (side == SIDE_SELL and price > best_bid):
                         return price
-                    order_book = self.account.get_order_book(symbol=symbol)
             else:
+                if amount is None:
+                    amount = self.account.min_amount(symbol)
                 orders = order_book['asks' if side == SIDE_BUY else 'bids']
                 amount_to_fill = amount
                 for order in orders:
@@ -1678,10 +1829,10 @@ class Rebalance:
             try:
                 if order['orderId'] < 0:
                     if order['status'] == 'Account has insufficient balance for requested action.':
-                        order['quantity'] = str(self.account.round_right(
-                                self.account.balance.loc[QUOTE_ASSET, 'Amount'] / float(order['price']),
-                                order['symbol']))
-                elif order['type'] == ORDER_TYPE_LIMIT_MAKER and 'take' in order['status']:
+                        order['quantity'] = str(self.account.round_amount(
+                            self.account.balance.loc[QUOTE_ASSET, 'Amount'] / float(order['price']), order['symbol']))
+                        continue
+                if order['type'] == ORDER_TYPE_LIMIT_MAKER and 'take' in order['status']:
                     order['price'] = str(self.price_for_amount(order['symbol'], side=order['side'], maker=True))
                 elif order['status'] in (ORDER_STATUS_EXPIRED, ORDER_STATUS_CANCELED):
                     order['price'] = str(self.price_for_amount(order['symbol'], amount=float(order['quantity']),
@@ -1698,11 +1849,46 @@ class Rebalance:
                 log_error(e)
         return orders
 
+    def refresh_order_status(self, orders):
+        for order in orders:
+            try:
+                status = order.get("status", 'UNKNOWN')
+                order_id = order.get("orderId", -1)
+                if order_id > 0 and status != ORDER_STATUS_FILLED:
+                    try:
+                        status = self.account.get_order(symbol=order.get("symbol"),
+                                                        orderId=order.get("orderId", {status: 'UNKNOWN'}))["status"]
+                    except BinanceAPIException as e:
+                        if str(e).find('Order does not exist') > -1:
+                            status = 'FILLED'
+                        else:
+                            log_error(e)
+                    order['status'] = status
+                logging.debug(f' Order # {order_id}: {status}')
+            except Exception as e:
+                log_error(e)
+        return orders
+
     def set_attributes_from_config(self, **kwargs):
         attributes = self.account.config
         attributes.update(kwargs)
         for key, value in attributes.items():
             setattr(self, key, value)
+
+    def trim_target(self, target):
+        # TODO adjust target to simple list
+        if isinstance(target, dict):
+            if all([isinstance(k, int) for k in target.keys()]):
+                # noinspection PyArgumentList
+                target = pd.DataFrame({index: {coin: percentage / self.top_n
+                                       for coin in self.nm_data.get(index).index[:self.top_n]}
+                                       for index, percentage in target.items()}).T.sum().to_dict()
+            else:
+                total = sum(target.values())
+                target = {k: v / total for k, v in target.items()}
+        else:
+            target = {k: 1/len(target) for k in target}
+        return target
 
 
 class Statement:
@@ -1798,13 +1984,13 @@ class Statement:
         dusts['isMaker'] = False
         dusts['isBestMatch'] = True
         dusts.loc[dusts.isBuyer, 'quoteQty'] = dusts.loc[dusts.isBuyer, 'qty']
-        dusts.loc[dusts.isBuyer, 'qty'] = dusts.loc[dusts.isBuyer, 'transferedAmount'] + dusts.loc[
+        dusts.loc[dusts.isBuyer, 'qty'] = dusts.loc[dusts.isBuyer, 'transferredAmount'] + dusts.loc[
             dusts.isBuyer, 'commission']
         dusts.loc[dusts.isBuyer, 'price'] = dusts.loc[dusts.isBuyer, 'quoteQty'] / dusts.loc[dusts.isBuyer, 'qty']
         dusts.loc[~dusts.isBuyer, 'quoteQty'] = dusts.loc[~dusts.isBuyer, 'qty'] ** 2 / dusts.loc[
-            ~dusts.isBuyer, 'transferedAmount']
+            ~dusts.isBuyer, 'transferredAmount']
         dusts.loc[~dusts.isBuyer, 'price'] = dusts.loc[~dusts.isBuyer, 'qty'] / dusts.loc[
-            ~dusts.isBuyer, 'transferedAmount']
+            ~dusts.isBuyer, 'transferredAmount']
         dusts['commissionAsset'] = 'BNB'
         dusts['orderListId'] = -1
         transactions = pd.concat([transactions, dusts[transactions.columns]]).set_index('time').sort_index()

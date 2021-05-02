@@ -6,8 +6,8 @@ import logging
 import pandas as pd
 from nm import NMData, BinanceAccount, Rebalance
 from nm.util import tz_remove_and_normalize, QUOTE_ASSET, log_error
-from config import RETRIES as DEFAULT_RETRIES
-from config import accounts as account_config
+# noinspection PyUnresolvedReferences
+from config import RETRIES as DEFAULT_RETRIES, accounts as account_config
 
 
 def rebalance(argv):
