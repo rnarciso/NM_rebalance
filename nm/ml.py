@@ -9,12 +9,12 @@ from tqdm import tqdm
 import pickle5 as pickle
 from functools import partial
 from operator import itemgetter
-from collections import Iterable
+from collections import Sequence
 from nm.util import make_bak_file
 from deap.gp import PrimitiveTree
 from deap import tools, base, creator
 from tpot.builtins import StackingEstimator
-from nm.util import is_serializable, trim_run
+from nm.util import is_serializable, trim_run, MODELS_FILENAME
 from sklearn.model_selection import train_test_split
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import make_union, make_pipeline
@@ -31,11 +31,8 @@ OPEN_TIME = 'date'
 
 DEFAULT_IMP_METHOD = 'coef'
 
-MODELS_FILENAME = 'models.dat'
-
-NON_SERIALIZABLE = (
-'_pop_', '_pareto_front', '_toolbox', '_pset', '_log_file', 'operators_context', 'log_file_', 'operators', 'arguments',
-'warm_start', 'generations', '_pop', '_pbar')
+NON_SERIALIZABLE = ('_pop_', '_pareto_front', '_toolbox', '_pset', '_log_file', 'operators_context', 'log_file_',
+                    'operators', 'arguments', 'warm_start', 'generations', '_pop', '_pbar')
 
 RANDOM_STATE = 41
 
@@ -54,7 +51,8 @@ if not hasattr(creator, 'Individual'):
             )
 
 
-class Regressor(tpot.TPOTRegressor):
+# noinspection PyTypeChecker,PyUnresolvedReferences
+class MyTPOT:
     non_serializable = set(NON_SERIALIZABLE)
 
     def __getstate__(self):
@@ -73,7 +71,7 @@ class Regressor(tpot.TPOTRegressor):
         self._update_non_serializable()
 
     def fit(self, features, target, sample_weight=None, groups=None):
-        super().fit(features, target, sample_weight=None, groups=None)
+        super().fit(features, target, sample_weight=sample_weight, groups=groups)
         self._update_non_serializable()
 
     def _update_non_serializable(self):
@@ -81,31 +79,12 @@ class Regressor(tpot.TPOTRegressor):
         self.non_serializable.union([a for a in attributes.keys() if not is_serializable(attributes.get(a))])
 
 
-class Classifier(tpot.TPOTClassifier):
-    non_serializable = set(NON_SERIALIZABLE)
+class Classifier(tpot.TPOTClassifier, MyTPOT):
+    pass
 
-    def __getstate__(self):
-        if hasattr(self, '_optimized_pipeline') and not isinstance(self._optimized_pipeline, str):
-            self._optimized_pipeline = PrimitiveTree(self._optimized_pipeline).__str__()
-        attributes = self.__dict__.copy()
-        # for attr in [a for a in attributes.keys() if not is_serializable(attributes.get(a))]:
-        for attr in attributes.keys():
-            if attr in self.non_serializable:
-                attributes[attr] = []
-        return attributes
 
-    def __setstate__(self, state):
-        self.__dict__ = state
-        rebuild_me(self)
-        self._update_non_serializable()
-
-    def fit(self, features, target, sample_weight=None, groups=None):
-        super().fit(features, target, sample_weight=None, groups=None)
-        self._update_non_serializable()
-
-    def _update_non_serializable(self):
-        attributes = self.__dict__.copy()
-        self.non_serializable.union([a for a in attributes.keys() if not is_serializable(attributes.get(a))])
+class Regressor(tpot.TPOTRegressor, MyTPOT):
+    pass
 
 
 def add_attr(fitness, items):
@@ -271,7 +250,7 @@ class MarketModels:
     def filename(self):
         if self._filename is None:
             try:
-                # noinspection PyPep8Naming,PyShadowingNames
+                # noinspection PyPep8Naming,PyShadowingNames,PyUnresolvedReferences,PyPackageRequirements
                 from config import ml_models as MODELS_FILENAME
             except (ImportError, ModuleNotFoundError):
                 global MODELS_FILENAME
@@ -375,7 +354,7 @@ class MarketModels:
                 regression = False
         return regression
 
-    def model_train(self, X, Y, regression=None, max_time_mins=5 * 60, max_eval_time_mins=1, early_stop=5,
+    def model_train(self, x, y, regression=None, max_time_mins=5 * 60, max_eval_time_mins=1, early_stop=5,
                     config_dict=TPOT_DEFAULT_CONFIG_DICT, n_jobs=-1):
 
         params = dict(max_time_mins=max_time_mins,
@@ -385,12 +364,12 @@ class MarketModels:
                       verbosity=3,
                       n_jobs=n_jobs,
                       config_dict=config_dict)
-        regression = self.model_type(Y, regression)
+        regression = self.model_type(y, regression)
         if regression:
             model = Regressor(**params)
         else:
             model = Classifier(**params)
-        model.fit(X, Y)
+        model.fit(x, y)
         model.warm_start = True
         return model
 
@@ -418,7 +397,7 @@ class MarketModels:
                                 if c != target]
             else:
                 features = self.get_features_from_columns(df, target, exclude)
-        elif not isinstance(features, Iterable):
+        elif not isinstance(features, Sequence):
             features = [features]
         return features
 
@@ -442,7 +421,7 @@ class MarketModels:
         return model_name
 
     def get_xy_from_df(self, df, features=None, target=None, n_features=None, regression=None, exclude=(),
-                       drop_target_na=True, fill_features_na=True, trimXY=True, test_size=None, random_state=None,
+                       drop_target_na=True, fill_features_na=True, trim_xy=True, test_size=None, random_state=None,
                        train=True):
         if test_size is None:
             test_size = 0.2
@@ -471,7 +450,7 @@ class MarketModels:
             x, y = x_train, y_train
         else:
             x, y = x_test, y_test
-        if trimXY:
+        if trim_xy:
             return self.trim_xy(x, y)
         else:
             return x, y
@@ -541,7 +520,7 @@ class MarketModels:
 
     # noinspection PyTypeChecker
     def apply_mode(self, df, model_name=None, method_name=None,
-                   trimXY=True, exclude=(), target=None, features=None, n_features=None,
+                   trim_xy=True, exclude=(), target=None, features=None, n_features=None,
                    **kwargs):
         x, y = np.array([]), np.array([])
         if method_name is None:
@@ -557,41 +536,10 @@ class MarketModels:
                     logging.error(f' Model {model_name} not found.')
                     return
         if isinstance(df, pd.DataFrame):
-            if features is None:
-                features = self.features
-            if features is None:
-                features, target = self.get_features(df, exclude=exclude, n_features=n_features, target=target)
-            if target is None:
-                target = self.target
-            if target is None:
-                df, target = self.get_target(df, target)
-            # noinspection PyUnresolvedReferences
-            try:
-                x = df[features].values
-            except KeyError:
-                x = np.array([])
-            try:
-                y = df[target].values
-            except KeyError:
-                y = np.array([])
+            x, y = self.xy_from_df(df, exclude, features, n_features, target)
         elif isinstance(df, pd.Series):
-            if features is None:
-                features = self.features
-            if features is None:
-                features, target = self.get_features(df, exclude=exclude, n_features=n_features, target=target)
-            if target is None:
-                target = self.target
-            if target is None:
-                df, target = self.get_target(df, target)
-            try:
-                x = df[features].values
-            except KeyError:
-                x = np.array([])
-            try:
-                y = np.array(df[target].values)
-            except KeyError:
-                y = np.array([])
-        elif isinstance(df, Iterable):
+            x, y = self.xy_from_series(df, exclude, features, n_features, target)
+        elif isinstance(df, Sequence):
             # noinspection PyTypeChecker
             if hasattr(df, 'shape'):
                 x = df
@@ -611,12 +559,48 @@ class MarketModels:
                     x = [df]
                 if isinstance(model_name, numbers.Number):
                     y = [model_name]
-        if trimXY:
+        if trim_xy:
             x, y = self.trim_xy(x, y)
         if hasattr(self.model, method_name):
             kwargs['x'] = x
             kwargs['y'] = y
             return trim_run(getattr(self.model, method_name), kwargs)
+
+    def xy_from_series(self, df, exclude, features, n_features, target):
+        df, features, target = self.get_features_and_target_from_df(df, exclude, features, n_features, target)
+        try:
+            x = df[features].values
+        except KeyError:
+            x = np.array([])
+        try:
+            y = np.array(df[target].values)
+        except KeyError:
+            y = np.array([])
+        return x, y
+
+    def xy_from_df(self, df, exclude, features, n_features, target):
+        df, features, target = self.get_features_and_target_from_df(df, exclude, features, n_features, target)
+        # noinspection PyUnresolvedReferences
+        try:
+            x = df[features].values
+        except KeyError:
+            x = np.array([])
+        try:
+            y = df[target].values
+        except KeyError:
+            y = np.array([])
+        return x, y
+
+    def get_features_and_target_from_df(self, df, exclude, features, n_features, target):
+        if features is None:
+            features = self.features
+        if features is None:
+            features, target = self.get_features(df, exclude=exclude, n_features=n_features, target=target)
+        if target is None:
+            target = self.target
+        if target is None:
+            df, target = self.get_target(df, target)
+        return df, features, target
 
     def activate(self, model_name: str = None):
         if model_name is None:

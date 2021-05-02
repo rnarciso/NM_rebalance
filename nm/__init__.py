@@ -1,7 +1,6 @@
 import ta
 import json
 import time
-import random
 import asyncio
 import pathlib
 import warnings
@@ -566,8 +565,7 @@ class BinanceAccount:
                         self._config = account
                         break
                 else:
-                    logging.error(f'Unable to find account {key_name} description on config file!')
-                    return
+                    self._config = accounts[0]
             except Exception as e:
                 log_error(e)
             self._key_name = key_name
@@ -1501,11 +1499,11 @@ class Rebalance:
     def min_amount(self, symbol):
         self.account.minimal_order()
 
-    def order_status(self, orderId):
+    def order_status(self, order_id):
         while True:
             try:
                 order = {'status': o.get('status') for o in self.account.get_open_orders()
-                         if o.get('orderId', -1) == orderId}
+                         if o.get('orderId', -1) == order_id}
                 break
             except BinanceAPIException as e:
                 log_error(e)
@@ -1723,7 +1721,7 @@ class Rebalance:
 
     # def place_orders(self, orders):
     #     # noinspection PyShadowingNames
-    # 
+    #
     #     # noinspection PyShadowingNames
     #     def status_for_id(order_id=None):
     #         status = {d.get('orderId', 0): d.get('status', 'UNKNOWN') for d in orders}
@@ -1731,7 +1729,7 @@ class Rebalance:
     #             return status
     #         else:
     #             return status.get(order_id)
-    # 
+    #
     #     for order in tqdm(orders, desc='placing orders'):
     #         if order['side'] == 'BUY' and len(orders) > 0:
     #             while True:
