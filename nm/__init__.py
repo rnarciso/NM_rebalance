@@ -90,7 +90,7 @@ class Fees:
             if self._df is None:
                 self._df = self.load(self.filename)
             if tz_remove_and_normalize('now') - self.last_update > pd.Timedelta(1, 'day'):
-                self._df = pd.DataFrame.from_dict(self.get_trade_fee()['tradeFee']).set_index('symbol')
+                self._df = pd.DataFrame.from_dict(self.binance_api.get_trade_fee()['tradeFee']).set_index('symbol')
                 self.save()
         except Exception as e:
             log_error(e)
@@ -569,7 +569,7 @@ class BinanceAccount:
                     self._config = accounts[0]
             except Exception as e:
                 log_error(e)
-            self._key_name = key_name
+                self._key_name = key_name
         self._include_locked_asset_in_balance = include_locked
         self._info = None
         self._min_notational = None
@@ -633,7 +633,7 @@ class BinanceAccount:
                 if not amount_left > 0:
                     break
             if add_fee:
-                fee = self.fees[market]
+                fee = self.fees['market']
                 cost *= 1 + fee
 
             return dict(price=avg_price, quote_amount=cost)
@@ -1355,13 +1355,15 @@ class Rebalance:
         self._loop = asyncio.get_event_loop()
         self.nm_data = NMData()
         self.fees = Fees()
-        self.market_orders = True
-        self.market_maker = False
+        self.market_orders = False
+        self.market_maker = True
         self.pending_orders = []
         self.subaccount = False
         self.top_n = 4
         self.maker_order_book_position = {}
         self.set_attributes_from_config(**kwargs)
+        if self.market_orders:
+            self.market_maker = False
 
     @property
     def nm_index(self):
@@ -1586,12 +1588,14 @@ class Rebalance:
                 order['quantity'] = float(self.account.lotsize[order.get('symbol')]['minQty'])
 
         try:
-            order.pop('validated')
+            order.pop('validated', None)
             logging.debug(f'order keys: {order.keys()}')
-            if isinstance(order['quantity'], float):
+            if isinstance(order.get('quantity'), float):
                 order['quantity'] = str(self.account.round_amount(order['quantity'], order['symbol']))
-            if isinstance(order['price'], float):
+            if isinstance(order.get('price'), float):
                 order['price'] = str(self.account.round_price(order['price'], order['symbol']))
+            if isinstance(order.get('quoteOrderQty'), float):
+                order['quoteOrderQty'] = str(self.account.round_price(order['quoteOrderQty'], order['symbol']))
         except KeyError:
             pass
         try:
@@ -1613,6 +1617,10 @@ class Rebalance:
             else:
                 self.maker_order_book_position[order['symbol']] = order.get('maker_position', -2) + 1
                 order['price'] = self.price_for_amount(order['symbol'], amount=float(order['quantity']), maker=True)
+                if order['price'] * float(order['quantity']) * (
+                        1 + self.fees.loc[order['symbol'], 'maker']) > self.account.balance.loc[QUOTE_ASSET, 'Amount']:
+                    order['quantity'] = self.account.balance.loc[QUOTE_ASSET, 'Amount'] / (
+                            order['price'] * (1 + self.fees.loc[order['symbol'], 'maker']))
                 order['maker_position'] = self.maker_order_book_position.get(order['symbol'], -1)
 
         def reprice_limit_order(order):
@@ -1656,7 +1664,6 @@ class Rebalance:
                         logging.info(f'Waiting for orders to be fullfilled')
                         open_orders = [o for o in self.account.get_open_orders()]
                         open_order_ids = [o.get('orderId', -1) for o in open_orders]
-                        self.pending_orders = [o for o in self.pending_orders if o in open_order_ids]
                         our_open_orders = [o for o in open_orders if open_order_ids in self.pending_orders]
                         for order in our_open_orders:
                             if (pd.Timestamp.now('utc').astimezone(None) - pd.Timestamp.utcfromtimestamp(
@@ -1668,7 +1675,7 @@ class Rebalance:
                         else:
                             break
 
-            self.pending_orders += [order_id]
+                self.pending_orders += [order_id]
             if order['type'] == ORDER_TYPE_LIMIT_MAKER:
                 reprice_maker_order(order)
             elif order['type'] == ORDER_TYPE_LIMIT:
