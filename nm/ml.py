@@ -200,7 +200,7 @@ class Model:
                 return Regressor
 
 
-# noinspection PyTypeChecker
+# noinspection PyTypeChecker,PyGlobalUndefined
 class MarketModels:
 
     def __init__(self, filename=None, load=True):
