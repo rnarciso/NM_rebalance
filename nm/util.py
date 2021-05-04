@@ -191,7 +191,7 @@ def readable_kline(klines):
     columns = ['Open time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close time', 'Quote asset volume',
                'Number of trades', 'Taker buy base asset volume', 'Taker buy quote asset volume', 'Ignore']
     kline.columns = columns
-    kline['Open time'] = pd.Timestamp.utcfromtimestamp(kline['Open time'] // 1000)
+    kline['Open time'] = (kline['Open time'] // 1000).apply(pd.Timestamp.utcfromtimestamp)
     return kline
 
 

@@ -8,16 +8,15 @@ import numpy as np
 from nm.util import *
 from functools import partial
 # noinspection PyPackageRequirements
-from binance.client import Client
+from binance.client import BaseClient, Client
 from collections.abc import Iterable
 from itertools import combinations
 # noinspection PyPackageRequirements
 from binance.exceptions import BinanceAPIException
 
-# import constants from Client
-for const in globals().copy().keys():
-    if globals()[const] is None and Client.__dict__.get(const) is not None:
-        globals()[const] = Client.__dict__[const]
+
+# import constants from BaseClient
+globals().update({const: value for const, value in vars(BaseClient).items() if const[0] != '_'})
 
 
 class Fees:
